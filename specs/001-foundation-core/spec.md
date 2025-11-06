@@ -5,7 +5,7 @@
 **Status**: Draft  
 **Input**: User description: "参考readme.md的功能清单要求,先帮我规划一下基础能力,实现骨架能力及基础能力,做为后续各功能迭代的核心及基础。"
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - 项目骨架与开发环境搭建 (Priority: P1)
 
@@ -171,7 +171,7 @@
 - **配置文件错误**: 当管理员编辑配置文件引入语法错误时,系统能否检测并拒绝加载无效配置?
 - **时区差异**: 当用户和服务器位于不同时区时,时间戳显示是否正确?
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -286,7 +286,7 @@
 - **Model(模型)**: 代表 AI 模型配置,包含唯一 ID、名称、类别、API 端点、超时配置、并发限制、状态(可用/不可用)
 - **LogEntry(日志条目)**: 代表一条结构化日志,包含时间戳、级别、事件类型、traceId、会话 ID、文件 ID、消息 key、本地化消息、上下文数据、错误堆栈
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

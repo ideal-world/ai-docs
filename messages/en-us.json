@@ -1,0 +1,8 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"hello_world": "Hello, {name}!",
+	"welcome": "Welcome to AI Document Platform",
+	"language": "Language",
+	"upload": "Upload",
+	"preview": "Preview"
+}

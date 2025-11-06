@@ -8,6 +8,7 @@
 ## Summary
 
 建立 AI 文档处理平台的基础架构,包括:
+
 - 前端开发环境(SvelteKit + Svelte 5 + FlyonUI + Tailwind CSS v4)
 - 核心 UI 组件库与响应式布局系统
 - 文件上传与预览能力(图片/PDF/Office,含 LibreOffice 转换)
@@ -22,7 +23,8 @@
 ## Technical Context
 
 **Language/Version**: TypeScript 5.x + Node.js 20.x (服务端) / 现代浏览器(前端)
-**Primary Dependencies**: 
+**Primary Dependencies**:
+
 - Frontend: SvelteKit (Svelte 5), FlyonUI, Tailwind CSS v4, pnpm
 - Backend: SvelteKit endpoints, LibreOffice (headless mode for Office→PDF conversion)
 - Build/Dev: Vite, Vitest, ESLint, Prettier
@@ -30,7 +32,8 @@
 - PDF Viewer: PDF.js 或 compatible library
 - HTTP Client (SDK): fetch API / axios
 
-**Storage**: 
+**Storage**:
+
 - 配置: YAML 文件(模型配置、系统参数、i18n 资源)
 - 文件存储: 本地文件系统 `/data/{sessionId}/{category}/`
 - 会话管理: 内存或轻量 KV 存储(可使用 Map 或 better-sqlite3 临时缓存)
@@ -38,14 +41,16 @@
 
 **Testing**: Vitest(单元测试 + 集成测试), Playwright(E2E 测试 - 可选)
 
-**Target Platform**: 
+**Target Platform**:
+
 - 前端: 现代浏览器(Chrome/Firefox/Safari/Edge 最新版本)
 - 服务端: Linux/macOS/Windows with Node.js 20.x
 - 部署: 静态导出 + Node.js 服务器 或 SvelteKit adapter
 
 **Project Type**: Web 应用(前后端一体化 SvelteKit monorepo + 独立 SDK 包)
 
-**Performance Goals**: 
+**Performance Goals**:
+
 - 页面首屏加载 < 2 秒
 - HMR 热更新 < 1 秒
 - 文件上传(50MB) < 30 秒(10Mbps 网络)
@@ -53,7 +58,8 @@
 - API 响应(非 AI 调用) < 500ms
 - 并发支持 10+ 用户同时上传
 
-**Constraints**: 
+**Constraints**:
+
 - 单文件上传限制 200MB(可配置)
 - Office 转换超时 120 秒(可配置)
 - 模型调用超时 180 秒(可配置)
@@ -61,7 +67,8 @@
 - 无外部数据库依赖
 - 必须支持离线开发(除模型调用外)
 
-**Scale/Scope**: 
+**Scale/Scope**:
+
 - 初期支持 < 100 并发用户
 - 单实例文件存储 < 100GB
 - 基础组件库 10+ 个可复用组件
@@ -107,7 +114,7 @@ specs/[###-feature]/
   not include Option labels.
 -->
 
-```text
+````text
 ### Source Code (repository root)
 
 ```text
@@ -214,10 +221,11 @@ vitest.config.ts               # Vitest 配置
 tsconfig.json                  # TypeScript 配置
 package.json                   # 项目依赖
 pnpm-workspace.yaml            # pnpm workspace 配置
-```
+````
 
-**Structure Decision**: 
+**Structure Decision**:
 采用 SvelteKit monorepo 结构,主应用包含前后端一体化代码,SDK 作为独立 workspace 包。选择此结构的原因:
+
 1. SvelteKit 天然支持前后端一体化,简化开发和部署
 2. Monorepo 便于主应用和 SDK 共享类型定义和工具函数
 3. 独立 SDK 包便于版本管理和外部集成

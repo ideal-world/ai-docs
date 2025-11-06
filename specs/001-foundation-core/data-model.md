@@ -16,27 +16,29 @@
 
 | 字段名    | 类型      | 必填 | 描述                | 验证规则           |
 | --------- | --------- | ---- | ------------------- | ------------------ |
-| id        | string    | ✅    | 唯一标识符(UUID v4) | UUID 格式          |
-| createdAt | Date      | ✅    | 创建时间            | ISO 8601 时间戳    |
-| expiresAt | Date      | ✅    | 过期时间            | 必须晚于 createdAt |
-| language  | string    | ✅    | 用户语言偏好        | 'zh-CN' \| 'en-US' |
-| files     | FileRef[] | ✅    | 关联的文件列表      | 数组               |
-| metadata  | Record    | ❌    | 扩展元数据          | 键值对             |
+| id        | string    | ✅   | 唯一标识符(UUID v4) | UUID 格式          |
+| createdAt | Date      | ✅   | 创建时间            | ISO 8601 时间戳    |
+| expiresAt | Date      | ✅   | 过期时间            | 必须晚于 createdAt |
+| language  | string    | ✅   | 用户语言偏好        | 'zh-CN' \| 'en-US' |
+| files     | FileRef[] | ✅   | 关联的文件列表      | 数组               |
+| metadata  | Record    | ❌   | 扩展元数据          | 键值对             |
 
 **状态转换**:
+
 ```
 [创建] → [活跃] → [过期] → [清理]
 ```
 
 **TypeScript 定义**:
+
 ```typescript
 export interface Session {
-  id: string;
-  createdAt: Date;
-  expiresAt: Date;
-  language: 'zh-CN' | 'en-US';
-  files: FileRef[];
-  metadata?: Record<string, unknown>;
+	id: string;
+	createdAt: Date;
+	expiresAt: Date;
+	language: 'zh-CN' | 'en-US';
+	files: FileRef[];
+	metadata?: Record<string, unknown>;
 }
 ```
 
@@ -50,29 +52,31 @@ export interface Session {
 
 | 字段名    | 类型         | 必填 | 描述                         | 验证规则                              |
 | --------- | ------------ | ---- | ---------------------------- | ------------------------------------- |
-| id        | string       | ✅    | 唯一标识符(UUID v4)          | UUID 格式                             |
-| sessionId | string       | ✅    | 所属会话 ID                  | 关联 Session.id                       |
-| name      | string       | ✅    | 原始文件名                   | 非空,长度 1-255                       |
-| type      | FileType     | ✅    | 文件类型                     | 'image' \| 'pdf' \| 'office'          |
-| mimeType  | string       | ✅    | MIME 类型                    | 有效的 MIME 类型                      |
-| size      | number       | ✅    | 文件大小(字节)               | > 0, <= 200MB(可配置)                 |
-| path      | string       | ✅    | 存储路径(相对于 data 目录)   | 有效路径                              |
-| category  | Category     | ✅    | 存储类别                     | 'uploads' \| 'converted' \| 'results' |
-| createdAt | Date         | ✅    | 创建时间                     | ISO 8601 时间戳                       |
-| metadata  | FileMetadata | ❌    | 文件特定元数据(页数、尺寸等) | 根据 type 不同                        |
+| id        | string       | ✅   | 唯一标识符(UUID v4)          | UUID 格式                             |
+| sessionId | string       | ✅   | 所属会话 ID                  | 关联 Session.id                       |
+| name      | string       | ✅   | 原始文件名                   | 非空,长度 1-255                       |
+| type      | FileType     | ✅   | 文件类型                     | 'image' \| 'pdf' \| 'office'          |
+| mimeType  | string       | ✅   | MIME 类型                    | 有效的 MIME 类型                      |
+| size      | number       | ✅   | 文件大小(字节)               | > 0, <= 200MB(可配置)                 |
+| path      | string       | ✅   | 存储路径(相对于 data 目录)   | 有效路径                              |
+| category  | Category     | ✅   | 存储类别                     | 'uploads' \| 'converted' \| 'results' |
+| createdAt | Date         | ✅   | 创建时间                     | ISO 8601 时间戳                       |
+| metadata  | FileMetadata | ❌   | 文件特定元数据(页数、尺寸等) | 根据 type 不同                        |
 
 **子类型: FileMetadata**
 
 - **ImageMetadata**:
+
   ```typescript
   {
-    width: number;
-    height: number;
-    format: 'png' | 'jpg' | 'webp';
+  	width: number;
+  	height: number;
+  	format: 'png' | 'jpg' | 'webp';
   }
   ```
 
 - **PDFMetadata**:
+
   ```typescript
   {
     pages: number;
@@ -90,38 +94,39 @@ export interface Session {
   ```
 
 **TypeScript 定义**:
+
 ```typescript
 export type FileType = 'image' | 'pdf' | 'office';
 export type Category = 'uploads' | 'converted' | 'results';
 
 export interface File {
-  id: string;
-  sessionId: string;
-  name: string;
-  type: FileType;
-  mimeType: string;
-  size: number;
-  path: string;
-  category: Category;
-  createdAt: Date;
-  metadata?: ImageMetadata | PDFMetadata | OfficeMetadata;
+	id: string;
+	sessionId: string;
+	name: string;
+	type: FileType;
+	mimeType: string;
+	size: number;
+	path: string;
+	category: Category;
+	createdAt: Date;
+	metadata?: ImageMetadata | PDFMetadata | OfficeMetadata;
 }
 
 export interface ImageMetadata {
-  width: number;
-  height: number;
-  format: 'png' | 'jpg' | 'webp';
+	width: number;
+	height: number;
+	format: 'png' | 'jpg' | 'webp';
 }
 
 export interface PDFMetadata {
-  pages: number;
-  title?: string;
-  author?: string;
+	pages: number;
+	title?: string;
+	author?: string;
 }
 
 export interface OfficeMetadata {
-  format: 'docx' | 'xlsx' | 'pptx';
-  convertedPdfId?: string;
+	format: 'docx' | 'xlsx' | 'pptx';
+	convertedPdfId?: string;
 }
 ```
 
@@ -135,20 +140,21 @@ export interface OfficeMetadata {
 
 | 字段名      | 类型       | 必填 | 描述                | 验证规则                                          |
 | ----------- | ---------- | ---- | ------------------- | ------------------------------------------------- |
-| id          | string     | ✅    | 唯一标识符(UUID v4) | UUID 格式                                         |
-| sessionId   | string     | ✅    | 所属会话 ID         | 关联 Session.id                                   |
-| type        | TaskType   | ✅    | 任务类型            | 'convert' \| 'ocr' \| 'translate' 等              |
-| status      | TaskStatus | ✅    | 任务状态            | 'pending' \| 'running' \| 'succeeded' \| 'failed' |
-| progress    | number     | ✅    | 进度(0-100)         | 0 <= progress <= 100                              |
-| stage       | string     | ❌    | 当前阶段描述        | 非空字符串                                        |
-| createdAt   | Date       | ✅    | 创建时间            | ISO 8601 时间戳                                   |
-| startedAt   | Date       | ❌    | 开始时间            | 必须 >= createdAt                                 |
-| completedAt | Date       | ❌    | 完成时间            | 必须 >= startedAt                                 |
-| eta         | Date       | ❌    | 预计完成时间        | 必须 >= 当前时间                                  |
-| result      | TaskResult | ❌    | 任务结果            | status=succeeded 时必填                           |
-| error       | TaskError  | ❌    | 错误信息            | status=failed 时必填                              |
+| id          | string     | ✅   | 唯一标识符(UUID v4) | UUID 格式                                         |
+| sessionId   | string     | ✅   | 所属会话 ID         | 关联 Session.id                                   |
+| type        | TaskType   | ✅   | 任务类型            | 'convert' \| 'ocr' \| 'translate' 等              |
+| status      | TaskStatus | ✅   | 任务状态            | 'pending' \| 'running' \| 'succeeded' \| 'failed' |
+| progress    | number     | ✅   | 进度(0-100)         | 0 <= progress <= 100                              |
+| stage       | string     | ❌   | 当前阶段描述        | 非空字符串                                        |
+| createdAt   | Date       | ✅   | 创建时间            | ISO 8601 时间戳                                   |
+| startedAt   | Date       | ❌   | 开始时间            | 必须 >= createdAt                                 |
+| completedAt | Date       | ❌   | 完成时间            | 必须 >= startedAt                                 |
+| eta         | Date       | ❌   | 预计完成时间        | 必须 >= 当前时间                                  |
+| result      | TaskResult | ❌   | 任务结果            | status=succeeded 时必填                           |
+| error       | TaskError  | ❌   | 错误信息            | status=failed 时必填                              |
 
 **子类型: TaskResult**
+
 ```typescript
 {
   fileId?: string;       // 生成的文件 ID
@@ -157,6 +163,7 @@ export interface OfficeMetadata {
 ```
 
 **子类型: TaskError**
+
 ```typescript
 {
   code: string;          // 错误码
@@ -166,40 +173,42 @@ export interface OfficeMetadata {
 ```
 
 **状态转换**:
+
 ```
 [pending] → [running] → [succeeded]
                      ↘ [failed]
 ```
 
 **TypeScript 定义**:
+
 ```typescript
 export type TaskType = 'convert' | 'ocr' | 'translate' | 'qa' | 'review' | 'extract' | 'writeback';
 export type TaskStatus = 'pending' | 'running' | 'succeeded' | 'failed';
 
 export interface Task {
-  id: string;
-  sessionId: string;
-  type: TaskType;
-  status: TaskStatus;
-  progress: number;
-  stage?: string;
-  createdAt: Date;
-  startedAt?: Date;
-  completedAt?: Date;
-  eta?: Date;
-  result?: TaskResult;
-  error?: TaskError;
+	id: string;
+	sessionId: string;
+	type: TaskType;
+	status: TaskStatus;
+	progress: number;
+	stage?: string;
+	createdAt: Date;
+	startedAt?: Date;
+	completedAt?: Date;
+	eta?: Date;
+	result?: TaskResult;
+	error?: TaskError;
 }
 
 export interface TaskResult {
-  fileId?: string;
-  data?: unknown;
+	fileId?: string;
+	data?: unknown;
 }
 
 export interface TaskError {
-  code: string;
-  message: string;
-  stack?: string;
+	code: string;
+	message: string;
+	stack?: string;
 }
 ```
 
@@ -213,19 +222,20 @@ export interface TaskError {
 
 | 字段名         | 类型          | 必填 | 描述                              | 验证规则                    |
 | -------------- | ------------- | ---- | --------------------------------- | --------------------------- |
-| id             | string        | ✅    | 唯一标识符                        | 字母数字下划线              |
-| name           | string        | ✅    | 模型名称                          | 非空                        |
-| category       | ModelCategory | ✅    | 模型类别                          | 'ocr' \| 'translate' \| ... |
-| provider       | string        | ✅    | 提供商(openai/anthropic/azure 等) | 非空                        |
-| endpoint       | string        | ✅    | API 端点 URL                      | 有效 URL                    |
-| apiKeyEnv      | string        | ✅    | API 密钥环境变量名                | 非空,不存储实际密钥         |
-| model          | string        | ✅    | 模型标识符(如 gpt-4)              | 非空                        |
-| timeout        | number        | ✅    | 超时时间(秒)                      | > 0, 默认 180               |
-| maxConcurrency | number        | ✅    | 最大并发数                        | > 0, 默认 5                 |
-| enabled        | boolean       | ✅    | 是否启用                          | true \| false               |
-| parameters     | ModelParams   | ❌    | 模型参数(temperature/top_p 等)    | 键值对                      |
+| id             | string        | ✅   | 唯一标识符                        | 字母数字下划线              |
+| name           | string        | ✅   | 模型名称                          | 非空                        |
+| category       | ModelCategory | ✅   | 模型类别                          | 'ocr' \| 'translate' \| ... |
+| provider       | string        | ✅   | 提供商(openai/anthropic/azure 等) | 非空                        |
+| endpoint       | string        | ✅   | API 端点 URL                      | 有效 URL                    |
+| apiKeyEnv      | string        | ✅   | API 密钥环境变量名                | 非空,不存储实际密钥         |
+| model          | string        | ✅   | 模型标识符(如 gpt-4)              | 非空                        |
+| timeout        | number        | ✅   | 超时时间(秒)                      | > 0, 默认 180               |
+| maxConcurrency | number        | ✅   | 最大并发数                        | > 0, 默认 5                 |
+| enabled        | boolean       | ✅   | 是否启用                          | true \| false               |
+| parameters     | ModelParams   | ❌   | 模型参数(temperature/top_p 等)    | 键值对                      |
 
 **子类型: ModelParams**
+
 ```typescript
 {
   temperature?: number;    // 0-2
@@ -236,28 +246,29 @@ export interface TaskError {
 ```
 
 **TypeScript 定义**:
+
 ```typescript
 export type ModelCategory = 'ocr' | 'translate' | 'qa' | 'optimize' | 'review' | 'extract';
 
 export interface Model {
-  id: string;
-  name: string;
-  category: ModelCategory;
-  provider: string;
-  endpoint: string;
-  apiKeyEnv: string;
-  model: string;
-  timeout: number;
-  maxConcurrency: number;
-  enabled: boolean;
-  parameters?: ModelParams;
+	id: string;
+	name: string;
+	category: ModelCategory;
+	provider: string;
+	endpoint: string;
+	apiKeyEnv: string;
+	model: string;
+	timeout: number;
+	maxConcurrency: number;
+	enabled: boolean;
+	parameters?: ModelParams;
 }
 
 export interface ModelParams {
-  temperature?: number;
-  top_p?: number;
-  max_tokens?: number;
-  [key: string]: unknown;
+	temperature?: number;
+	top_p?: number;
+	max_tokens?: number;
+	[key: string]: unknown;
 }
 ```
 
@@ -271,19 +282,20 @@ export interface ModelParams {
 
 | 字段名     | 类型      | 必填 | 描述                      | 验证规则                    |
 | ---------- | --------- | ---- | ------------------------- | --------------------------- |
-| timestamp  | string    | ✅    | ISO 8601 时间戳           | ISO 8601 格式               |
-| level      | LogLevel  | ✅    | 日志级别                  | 'info' \| 'warn' \| 'error' |
-| event      | string    | ✅    | 事件类型(如 upload.start) | 非空                        |
-| traceId    | string    | ✅    | 请求追踪 ID               | UUID 格式                   |
-| sessionId  | string    | ❌    | 会话 ID                   | UUID 格式                   |
-| fileId     | string    | ❌    | 文件 ID                   | UUID 格式                   |
-| userId     | string    | ❌    | 用户 ID(预留)             | 字符串                      |
-| messageKey | string    | ✅    | i18n 消息 key             | 点分隔符格式                |
-| message    | string    | ✅    | 本地化消息                | 非空                        |
-| context    | Record    | ❌    | 上下文数据                | 键值对                      |
-| error      | ErrorInfo | ❌    | 错误信息                  | level=error 时填写          |
+| timestamp  | string    | ✅   | ISO 8601 时间戳           | ISO 8601 格式               |
+| level      | LogLevel  | ✅   | 日志级别                  | 'info' \| 'warn' \| 'error' |
+| event      | string    | ✅   | 事件类型(如 upload.start) | 非空                        |
+| traceId    | string    | ✅   | 请求追踪 ID               | UUID 格式                   |
+| sessionId  | string    | ❌   | 会话 ID                   | UUID 格式                   |
+| fileId     | string    | ❌   | 文件 ID                   | UUID 格式                   |
+| userId     | string    | ❌   | 用户 ID(预留)             | 字符串                      |
+| messageKey | string    | ✅   | i18n 消息 key             | 点分隔符格式                |
+| message    | string    | ✅   | 本地化消息                | 非空                        |
+| context    | Record    | ❌   | 上下文数据                | 键值对                      |
+| error      | ErrorInfo | ❌   | 错误信息                  | level=error 时填写          |
 
 **子类型: ErrorInfo**
+
 ```typescript
 {
   name: string;        // 错误名称
@@ -294,28 +306,29 @@ export interface ModelParams {
 ```
 
 **TypeScript 定义**:
+
 ```typescript
 export type LogLevel = 'info' | 'warn' | 'error';
 
 export interface LogEntry {
-  timestamp: string;
-  level: LogLevel;
-  event: string;
-  traceId: string;
-  sessionId?: string;
-  fileId?: string;
-  userId?: string;
-  messageKey: string;
-  message: string;
-  context?: Record<string, unknown>;
-  error?: ErrorInfo;
+	timestamp: string;
+	level: LogLevel;
+	event: string;
+	traceId: string;
+	sessionId?: string;
+	fileId?: string;
+	userId?: string;
+	messageKey: string;
+	message: string;
+	context?: Record<string, unknown>;
+	error?: ErrorInfo;
 }
 
 export interface ErrorInfo {
-  name: string;
-  message: string;
-  stack?: string;
-  code?: string;
+	name: string;
+	message: string;
+	stack?: string;
+	code?: string;
 }
 ```
 
@@ -326,30 +339,33 @@ export interface ErrorInfo {
 ### ApiResponse (API 响应)
 
 **成功响应**:
+
 ```typescript
 export interface ApiSuccessResponse<T = unknown> {
-  success: true;
-  code: 'OK';
-  message: string;       // i18n key
-  timestamp: string;     // ISO 8601
-  traceId: string;       // UUID
-  data: T;
+	success: true;
+	code: 'OK';
+	message: string; // i18n key
+	timestamp: string; // ISO 8601
+	traceId: string; // UUID
+	data: T;
 }
 ```
 
 **错误响应**:
+
 ```typescript
 export interface ApiErrorResponse {
-  success: false;
-  code: string;          // 错误码(VALIDATION_ERROR, UPLOAD_FAILED 等)
-  message: string;       // i18n key
-  timestamp: string;     // ISO 8601
-  traceId: string;       // UUID
-  details?: Record<string, unknown>;
+	success: false;
+	code: string; // 错误码(VALIDATION_ERROR, UPLOAD_FAILED 等)
+	message: string; // i18n key
+	timestamp: string; // ISO 8601
+	traceId: string; // UUID
+	details?: Record<string, unknown>;
 }
 ```
 
 **联合类型**:
+
 ```typescript
 export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;
 ```
@@ -359,30 +375,31 @@ export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;
 ### Config (配置类型)
 
 **系统配置**:
+
 ```typescript
 export interface SystemConfig {
-  upload: {
-    maxSize: number;           // 最大文件大小(字节)
-    allowedTypes: string[];    // 允许的 MIME 类型
-    allowedExtensions: string[]; // 允许的扩展名
-  };
-  storage: {
-    dataDir: string;           // 数据目录路径
-    ttl: number;               // 文件 TTL(毫秒)
-    cleanupInterval: number;   // 清理任务间隔(毫秒)
-  };
-  conversion: {
-    timeout: number;           // LibreOffice 转换超时(毫秒)
-    libreOfficePath?: string;  // LibreOffice 可执行文件路径
-  };
-  logging: {
-    level: LogLevel;
-    pretty: boolean;           // 开发模式美化输出
-  };
-  i18n: {
-    defaultLanguage: 'zh-CN' | 'en-US';
-    supportedLanguages: string[];
-  };
+	upload: {
+		maxSize: number; // 最大文件大小(字节)
+		allowedTypes: string[]; // 允许的 MIME 类型
+		allowedExtensions: string[]; // 允许的扩展名
+	};
+	storage: {
+		dataDir: string; // 数据目录路径
+		ttl: number; // 文件 TTL(毫秒)
+		cleanupInterval: number; // 清理任务间隔(毫秒)
+	};
+	conversion: {
+		timeout: number; // LibreOffice 转换超时(毫秒)
+		libreOfficePath?: string; // LibreOffice 可执行文件路径
+	};
+	logging: {
+		level: LogLevel;
+		pretty: boolean; // 开发模式美化输出
+	};
+	i18n: {
+		defaultLanguage: 'zh-CN' | 'en-US';
+		supportedLanguages: string[];
+	};
 }
 ```
 
@@ -405,18 +422,21 @@ LogEntry (独立记录,通过 ID 关联)
 ## 验证规则总结
 
 ### 通用规则
+
 - **UUID**: 所有 ID 字段必须符合 UUID v4 格式
 - **时间戳**: 使用 ISO 8601 格式(如 `2025-11-06T09:30:45.123Z`)
 - **非空字符串**: 长度 >= 1
 - **文件大小**: 0 < size <= 200MB(可配置)
 
 ### 业务规则
+
 - **会话过期**: `expiresAt` 必须晚于 `createdAt`
 - **任务时间**: `startedAt >= createdAt`, `completedAt >= startedAt`
-- **文件类型**: `type` 和 `mimeType` 必须匹配(如 type='image' → mimeType='image/*')
+- **文件类型**: `type` 和 `mimeType` 必须匹配(如 type='image' → mimeType='image/\*')
 - **任务状态**: `status='succeeded'` 时必须有 `result`,`status='failed'` 时必须有 `error`
 
 ### 性能约束
+
 - **并发限制**: Model.maxConcurrency 控制同类型模型调用并发数
 - **超时控制**: Task.timeout、Model.timeout 强制终止超时操作
 - **存储配额**: SystemConfig.storage 限制总磁盘使用
@@ -426,6 +446,7 @@ LogEntry (独立记录,通过 ID 关联)
 ## 下一步
 
 数据模型已定义完成,下一步:
+
 1. 生成 API 契约(OpenAPI schema)
 2. 创建快速入门文档
 3. 更新 AI agent 上下文
