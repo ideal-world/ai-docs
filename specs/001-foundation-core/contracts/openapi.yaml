@@ -1,0 +1,605 @@
+openapi: 3.1.0
+info:
+  title: AI Docs Platform API
+  version: 0.1.0
+  description: |
+    AI 文档处理平台基础 API
+
+    提供文件上传、预览、AI 处理等核心能力。
+    所有响应遵循统一格式,包含 success、code、message、timestamp、traceId 字段。
+
+  contact:
+    name: Ideal World
+    url: https://github.com/ideal-world/ai-docs
+
+servers:
+  - url: http://localhost:5173/api
+    description: 本地开发服务器
+  - url: https://api.example.com/api
+    description: 生产环境
+
+tags:
+  - name: 文件管理
+    description: 文件上传、查询、删除
+  - name: 任务管理
+    description: 异步任务查询
+  - name: 系统
+    description: 健康检查、配置
+
+paths:
+  /upload:
+    post:
+      summary: 上传主文档
+      description: |
+        上传主文档(图片/PDF/Office 文件)。
+        - 图片和 PDF 直接返回文件 ID
+        - Office 文件自动创建转换任务,返回任务 ID
+      tags:
+        - 文件管理
+      operationId: uploadMainDocument
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 文件内容
+                sessionId:
+                  type: string
+                  format: uuid
+                  description: 会话 ID(可选,不提供则自动创建)
+      responses:
+        "200":
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/UploadResponse"
+              examples:
+                image:
+                  summary: 上传图片
+                  value:
+                    success: true
+                    code: OK
+                    message: upload.success
+                    timestamp: "2025-11-06T09:30:45.123Z"
+                    traceId: "abc-123-xyz"
+                    data:
+                      fileId: "f-001"
+                      sessionId: "s-001"
+                      type: "image"
+                      name: "document.png"
+                      size: 1024000
+                office:
+                  summary: 上传 Office 文件
+                  value:
+                    success: true
+                    code: OK
+                    message: upload.success
+                    timestamp: "2025-11-06T09:30:45.123Z"
+                    traceId: "abc-123-xyz"
+                    data:
+                      fileId: "f-002"
+                      sessionId: "s-001"
+                      type: "office"
+                      name: "document.docx"
+                      size: 2048000
+                      taskId: "t-001"
+        "400":
+          description: 请求错误(文件类型不支持、大小超限等)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+              examples:
+                fileSize:
+                  summary: 文件过大
+                  value:
+                    success: false
+                    code: VALIDATION_ERROR
+                    message: error.upload.size_exceeded
+                    timestamp: "2025-11-06T09:30:45.123Z"
+                    traceId: "abc-123-xyz"
+                    details:
+                      maxSize: 209715200
+                      actualSize: 300000000
+        "500":
+          description: 服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+
+  /attachments:
+    post:
+      summary: 上传附加文档
+      description: 上传附加文档(用于问答、审查、提取等功能)
+      tags:
+        - 文件管理
+      operationId: uploadAttachment
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - sessionId
+              properties:
+                file:
+                  type: string
+                  format: binary
+                sessionId:
+                  type: string
+                  format: uuid
+      responses:
+        "200":
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/UploadResponse"
+
+  /files/{fileId}:
+    get:
+      summary: 获取文件信息
+      tags:
+        - 文件管理
+      operationId: getFileInfo
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: 文件信息
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/File"
+        "404":
+          description: 文件不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+
+    delete:
+      summary: 删除文件
+      tags:
+        - 文件管理
+      operationId: deleteFile
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiSuccessResponse"
+
+  /files/{fileId}/download:
+    get:
+      summary: 下载文件
+      tags:
+        - 文件管理
+      operationId: downloadFile
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: 文件内容
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /task/{taskId}:
+    get:
+      summary: 查询任务状态
+      description: 查询异步任务的执行状态和进度
+      tags:
+        - 任务管理
+      operationId: getTaskStatus
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: 任务信息
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Task"
+              examples:
+                running:
+                  summary: 任务运行中
+                  value:
+                    success: true
+                    code: OK
+                    message: task.query.success
+                    timestamp: "2025-11-06T09:30:45.123Z"
+                    traceId: "abc-123-xyz"
+                    data:
+                      id: "t-001"
+                      type: "convert"
+                      status: "running"
+                      progress: 45
+                      stage: "Converting page 5/10"
+                      createdAt: "2025-11-06T09:30:00.000Z"
+                      startedAt: "2025-11-06T09:30:01.000Z"
+                      eta: "2025-11-06T09:31:00.000Z"
+                succeeded:
+                  summary: 任务成功
+                  value:
+                    success: true
+                    code: OK
+                    message: task.query.success
+                    timestamp: "2025-11-06T09:30:45.123Z"
+                    traceId: "abc-123-xyz"
+                    data:
+                      id: "t-001"
+                      type: "convert"
+                      status: "succeeded"
+                      progress: 100
+                      createdAt: "2025-11-06T09:30:00.000Z"
+                      startedAt: "2025-11-06T09:30:01.000Z"
+                      completedAt: "2025-11-06T09:30:50.000Z"
+                      result:
+                        fileId: "f-003"
+
+  /health:
+    get:
+      summary: 健康检查
+      description: 检查服务健康状态,包括 LibreOffice 是否可用
+      tags:
+        - 系统
+      operationId: healthCheck
+      responses:
+        "200":
+          description: 服务健康
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiSuccessResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/HealthStatus"
+              example:
+                success: true
+                code: OK
+                message: health.ok
+                timestamp: "2025-11-06T09:30:45.123Z"
+                traceId: "abc-123-xyz"
+                data:
+                  status: "healthy"
+                  services:
+                    libreoffice:
+                      available: true
+                      version: "7.6.4.1"
+                  uptime: 86400
+
+components:
+  schemas:
+    # 统一响应格式
+    ApiSuccessResponse:
+      type: object
+      required:
+        - success
+        - code
+        - message
+        - timestamp
+        - traceId
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        code:
+          type: string
+          enum: [OK]
+        message:
+          type: string
+          description: i18n key
+        timestamp:
+          type: string
+          format: date-time
+        traceId:
+          type: string
+          format: uuid
+
+    ApiErrorResponse:
+      type: object
+      required:
+        - success
+        - code
+        - message
+        - timestamp
+        - traceId
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        code:
+          type: string
+          enum:
+            - VALIDATION_ERROR
+            - UNSUPPORTED_FILE
+            - CONVERSION_FAILED
+            - FILE_NOT_FOUND
+            - UPLOAD_FAILED
+            - TASK_NOT_FOUND
+            - INTERNAL_ERROR
+        message:
+          type: string
+          description: i18n key
+        timestamp:
+          type: string
+          format: date-time
+        traceId:
+          type: string
+          format: uuid
+        details:
+          type: object
+          additionalProperties: true
+
+    # 核心数据模型
+    File:
+      type: object
+      required:
+        - id
+        - sessionId
+        - name
+        - type
+        - mimeType
+        - size
+        - path
+        - category
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        sessionId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        type:
+          type: string
+          enum: [image, pdf, office]
+        mimeType:
+          type: string
+          example: image/png
+        size:
+          type: integer
+          minimum: 1
+          maximum: 209715200
+        path:
+          type: string
+        category:
+          type: string
+          enum: [uploads, converted, results]
+        createdAt:
+          type: string
+          format: date-time
+        metadata:
+          oneOf:
+            - $ref: "#/components/schemas/ImageMetadata"
+            - $ref: "#/components/schemas/PDFMetadata"
+            - $ref: "#/components/schemas/OfficeMetadata"
+
+    ImageMetadata:
+      type: object
+      required:
+        - width
+        - height
+        - format
+      properties:
+        width:
+          type: integer
+          minimum: 1
+        height:
+          type: integer
+          minimum: 1
+        format:
+          type: string
+          enum: [png, jpg, webp]
+
+    PDFMetadata:
+      type: object
+      required:
+        - pages
+      properties:
+        pages:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+        author:
+          type: string
+
+    OfficeMetadata:
+      type: object
+      required:
+        - format
+      properties:
+        format:
+          type: string
+          enum: [docx, xlsx, pptx]
+        convertedPdfId:
+          type: string
+          format: uuid
+
+    Task:
+      type: object
+      required:
+        - id
+        - sessionId
+        - type
+        - status
+        - progress
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        sessionId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [convert, ocr, translate, qa, review, extract, writeback]
+        status:
+          type: string
+          enum: [pending, running, succeeded, failed]
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        stage:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        eta:
+          type: string
+          format: date-time
+        result:
+          type: object
+          properties:
+            fileId:
+              type: string
+              format: uuid
+            data:
+              type: object
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            stack:
+              type: string
+
+    UploadResponse:
+      type: object
+      required:
+        - fileId
+        - sessionId
+        - type
+        - name
+        - size
+      properties:
+        fileId:
+          type: string
+          format: uuid
+        sessionId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [image, pdf, office]
+        name:
+          type: string
+        size:
+          type: integer
+        taskId:
+          type: string
+          format: uuid
+          description: Office 文件转换任务 ID(仅 type=office 时存在)
+
+    HealthStatus:
+      type: object
+      required:
+        - status
+        - services
+        - uptime
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        services:
+          type: object
+          properties:
+            libreoffice:
+              type: object
+              required:
+                - available
+              properties:
+                available:
+                  type: boolean
+                version:
+                  type: string
+        uptime:
+          type: integer
+          description: 服务运行时间(秒)
+
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API 密钥(预留,当前版本未启用)
+
+security:
+  - {}
