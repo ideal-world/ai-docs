@@ -1,11 +1,9 @@
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { sveltekit } from '@sveltejs/kit/vite';
-import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	plugins: [
-		tailwindcss(),
 		sveltekit(),
 		paraglideVitePlugin({
 			project: './project.inlang',
@@ -16,5 +14,13 @@ export default defineConfig({
 		globals: true,
 		environment: 'jsdom',
 		include: ['tests/**/*.{test,spec}.{js,ts}']
+	},
+	server: {
+		fs: {
+			strict: false
+		},
+		hmr: {
+			overlay: true
+		}
 	}
 });
