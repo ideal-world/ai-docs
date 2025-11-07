@@ -1,35 +1,108 @@
+/**
+ * Configuration Types
+ * System and model configuration interfaces
+ */
+
 // System Configuration
 export interface SystemConfig {
 	upload: {
-		maxFileSize: number; // in bytes
-		allowedMimeTypes: string[];
-		tempDir: string;
+		max_file_size: number; // in bytes
+		allowed_extensions: string[];
 	};
 	storage: {
-		dataDir: string;
-		sessionTTL: number; // in seconds
-		diskQuota: number; // in bytes
+		session_ttl: number; // in seconds
+		disk_quota: number; // in bytes
+		cleanup_interval: number; // in seconds
 	};
 	server: {
-		port: number;
-		logLevel: 'debug' | 'info' | 'warn' | 'error';
+		request_timeout: number; // in seconds
+		body_size_limit: number; // in bytes
 	};
-	libreOffice: {
-		path: string;
+	conversion?: {
 		timeout: number; // in seconds
+		max_concurrent: number;
 	};
 }
 
 // Model Configuration
+// T084: Enhanced ModelConfig types
 export type ModelCategory = 'ocr' | 'translate' | 'qa' | 'review' | 'extract';
+export type ModelProvider = 'openai' | 'azure' | 'custom';
 
 export interface ModelConfig {
 	id: string;
 	name: string;
-	category: ModelCategory;
+	provider: ModelProvider;
+	model: string;
 	endpoint: string;
-	apiKey?: string;
-	timeout: number; // in seconds
-	maxConcurrency: number;
+	timeout: number; // milliseconds
+	max_concurrency: number;
 	enabled: boolean;
 }
+
+export interface ModelSettings {
+	default_timeout: number;
+	default_max_concurrency: number;
+	retry_attempts: number;
+	retry_delay: number;
+}
+
+export interface ModelsConfig {
+	ocr: ModelConfig[];
+	translate: ModelConfig[];
+	qa: ModelConfig[];
+	review: ModelConfig[];
+	extract: ModelConfig[];
+	settings: ModelSettings;
+}
+
+export interface ModelRequest {
+	model: string;
+	messages: Array<{
+		role: 'system' | 'user' | 'assistant';
+		content: string;
+	}>;
+	temperature?: number;
+	max_tokens?: number;
+	stream?: boolean;
+}
+
+export interface ModelResponse {
+	id: string;
+	object: string;
+	created: number;
+	model: string;
+	choices: Array<{
+		index: number;
+		message: {
+			role: string;
+			content: string;
+		};
+		finish_reason: string;
+	}>;
+	usage?: {
+		prompt_tokens: number;
+		completion_tokens: number;
+		total_tokens: number;
+	};
+}
+
+export interface QueuedRequest {
+	id: string;
+	category: ModelCategory;
+	request: ModelRequest;
+	timestamp: Date;
+	resolve: (value: ModelResponse) => void;
+	reject: (reason: Error) => void;
+}
+
+// Environment Configuration
+export interface EnvironmentConfig {
+	port: number;
+	logLevel: LogLevel;
+	dataDir: string;
+	libreOfficePath?: string;
+	apiKeys?: Record<string, string>;
+}
+
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';

@@ -44,7 +44,7 @@ UI/文档/指令必须使用中文,除非用户明确要求其它语言。所有
 ## 技术约束
 
 **技术栈**: SvelteKit(Svelte 5) + FlyonUI + Tailwind CSS v4 + pnpm  
-**文档处理**: LibreOffice(Office→PDF 转换 + UNO headless 回写)  
+**文档处理**: LibreOffice(Office→PDF 转换 + UNO headless 回写)，PDF需要先转成Markdown再处理(可能涉及OCR)，支持 “表格、表单、方程式、代码块、链接、引用”等提取。以Node技术栈优先，如果功能受限，可考虑其它技术栈
 **存储**: 无数据库,配置文件化,临时文件带 TTL  
 **模型类别**: ocr/translate/qa/optimize/review/extract(OpenAI 兼容)  
 **i18n**: zh-CN/en-US(页面/日志/返回值),英文回退  
@@ -61,7 +61,7 @@ UI/文档/指令必须使用中文,除非用户明确要求其它语言。所有
 
 **完成定义**:
 
-1. `pnpm run check` = 0 错误
+1. `pnpm check` = 0 错误
 2. `pnpm lint` 通过
 3. `pnpm test` 通过
 

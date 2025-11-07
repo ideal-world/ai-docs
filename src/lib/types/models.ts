@@ -1,28 +1,42 @@
+/**
+ * Core Data Models
+ * Based on data-model.md specification
+ */
+
 // File Types
 export type FileType = 'image' | 'pdf' | 'office';
+export type Category = 'uploads' | 'converted' | 'results';
 
 // Task Types
-export type TaskType = 'office_to_pdf' | 'ocr' | 'extract' | 'translate' | 'qa' | 'review';
-export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type TaskType = 'convert' | 'ocr' | 'translate' | 'qa' | 'review' | 'extract' | 'writeback';
+export type TaskStatus = 'pending' | 'running' | 'succeeded' | 'failed';
 
 // Session Model
 export interface Session {
 	id: string;
-	language: string;
-	createdAt: string;
-	expiresAt: string;
+	createdAt: Date;
+	expiresAt: Date;
+	language: 'zh-CN' | 'en-US';
+	files: FileRef[];
+	metadata?: Record<string, unknown>;
+}
+
+export interface FileRef {
+	fileId: string;
+	category: Category;
 }
 
 // File Model
 export interface File {
 	id: string;
 	sessionId: string;
-	originalName: string;
-	storagePath: string;
-	fileType: FileType;
+	name: string;
+	type: FileType;
 	mimeType: string;
 	size: number;
-	uploadedAt: string;
+	path: string;
+	category: Category;
+	createdAt: Date;
 	metadata?: ImageMetadata | PDFMetadata | OfficeMetadata;
 }
 
@@ -30,21 +44,19 @@ export interface File {
 export interface ImageMetadata {
 	width: number;
 	height: number;
-	format: string;
+	format: 'png' | 'jpg' | 'webp';
 }
 
 // PDF Metadata
 export interface PDFMetadata {
-	pageCount: number;
+	pages: number;
 	title?: string;
 	author?: string;
 }
 
 // Office Metadata
 export interface OfficeMetadata {
-	pageCount?: number;
-	wordCount?: number;
-	application?: string;
+	format: 'docx' | 'xlsx' | 'pptx';
 	convertedPdfId?: string;
 }
 
@@ -54,11 +66,23 @@ export interface Task {
 	sessionId: string;
 	type: TaskType;
 	status: TaskStatus;
-	inputFileId: string;
-	outputFileId?: string;
-	progress: number;
-	errorMessage?: string;
-	createdAt: string;
-	updatedAt: string;
-	completedAt?: string;
+	progress: number; // 0-100
+	stage?: string; // Current stage description
+	createdAt: Date;
+	startedAt?: Date;
+	completedAt?: Date;
+	eta?: Date; // Estimated time of arrival
+	result?: TaskResult;
+	error?: TaskError;
+}
+
+export interface TaskResult {
+	fileId?: string;
+	data?: unknown;
+}
+
+export interface TaskError {
+	code: string;
+	message: string;
+	stack?: string;
 }

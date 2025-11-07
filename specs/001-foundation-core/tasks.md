@@ -28,20 +28,20 @@ Based on plan.md, this is a SvelteKit monorepo with:
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Initialize SvelteKit project with TypeScript and pnpm in repository root
-- [ ] T002 [P] Install core dependencies (SvelteKit, Svelte 5, TypeScript, Vite) in package.json
-- [ ] T003 [P] Install UI dependencies (FlyonUI, Tailwind CSS v4) in package.json
-- [ ] T004 [P] Install development tools (ESLint, Prettier, Vitest) in package.json
-- [ ] T005 Configure Tailwind CSS v4 in tailwind.config.js with FlyonUI plugin
-- [ ] T006 [P] Configure ESLint in .eslintrc.cjs for TypeScript and Svelte
-- [ ] T007 [P] Configure Prettier in .prettierrc for code formatting
-- [ ] T008 Create global styles with Tailwind imports in src/app.css
-- [ ] T009 Create project directory structure (src/routes, src/lib/components, src/lib/services, src/lib/stores, src/lib/types, src/lib/utils, config, packages/sdk, tests)
-- [ ] T010 [P] Setup TypeScript configuration in tsconfig.json with strict mode
-- [ ] T011 [P] Create .env.example file with PORT, LOG_LEVEL, DATA_DIR, LIBREOFFICE_PATH
-- [ ] T012 [P] Add npm scripts in package.json (dev, build, preview, test, lint, check)
-- [ ] T013 [P] Create .gitignore for node_modules, .env, data/, build/
-- [ ] T014 Setup Vitest configuration in vitest.config.ts
+- [x] T001 Initialize SvelteKit project with TypeScript and pnpm in repository root
+- [x] T002 [P] Install core dependencies (SvelteKit, Svelte 5, TypeScript, Vite) in package.json
+- [x] T003 [P] Install UI dependencies (FlyonUI, Tailwind CSS v4) in package.json
+- [x] T004 [P] Install development tools (ESLint, Prettier, Vitest) in package.json
+- [x] T005 Configure Tailwind CSS v4 in tailwind.config.js with FlyonUI plugin
+- [x] T006 [P] Configure ESLint in .eslintrc.cjs for TypeScript and Svelte
+- [x] T007 [P] Configure Prettier in .prettierrc for code formatting
+- [x] T008 Create global styles with Tailwind imports in src/app.css
+- [x] T009 Create project directory structure (src/routes, src/lib/components, src/lib/services, src/lib/stores, src/lib/types, src/lib/utils, config, packages/sdk, tests)
+- [x] T010 [P] Setup TypeScript configuration in tsconfig.json with strict mode
+- [x] T011 [P] Create .env.example file with PORT, LOG_LEVEL, DATA_DIR, LIBREOFFICE_PATH
+- [x] T012 [P] Add npm scripts in package.json (dev, build, preview, test, lint, check)
+- [x] T013 [P] Create .gitignore for node_modules, .env, data/, build/
+- [x] T014 Setup Vitest configuration in vitest.config.ts
 
 ---
 
@@ -51,18 +51,18 @@ Based on plan.md, this is a SvelteKit monorepo with:
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T015 Create base TypeScript types in src/lib/types/api.ts (ApiSuccessResponse, ApiErrorResponse)
-- [ ] T016 [P] Create data model types in src/lib/types/models.ts (Session, File, Task, FileType, TaskType, etc.)
-- [ ] T017 [P] Create config types in src/lib/types/config.ts (SystemConfig, ModelConfig)
-- [ ] T018 Implement structured logger service in src/lib/services/logger.service.ts (JSON format, traceId, levels)
-- [ ] T019 Implement error handler utility in src/lib/utils/error.ts (unified error response format)
-- [ ] T020 Implement traceId generator utility in src/lib/utils/trace.ts (UUID v4 generation)
-- [ ] T021 Create API response helper in src/lib/utils/api.ts (success/error response builders)
-- [ ] T022 Create validation utilities in src/lib/utils/validation.ts (file type, size, UUID validation)
-- [ ] T023 Setup environment configuration loader in src/lib/utils/config.ts (read from .env)
-- [ ] T024 Create system configuration YAML schema in config/system.yaml (upload limits, TTL, timeouts)
-- [ ] T025 Implement storage service base structure in src/lib/services/storage.service.ts (directory creation, path utilities)
-- [ ] T026 Create base API endpoint structure in src/routes/api/+server.ts (traceId middleware, error handling)
+- [x] T015 Create base TypeScript types in src/lib/types/api.ts (ApiSuccessResponse, ApiErrorResponse)
+- [x] T016 [P] Create data model types in src/lib/types/models.ts (Session, File, Task, FileType, TaskType, etc.)
+- [x] T017 [P] Create config types in src/lib/types/config.ts (SystemConfig, ModelConfig)
+- [x] T018 Implement structured logger service in src/lib/services/logger.service.ts (JSON format, traceId, levels)
+- [x] T019 Implement error handler utility in src/lib/utils/error.ts (unified error response format)
+- [x] T020 Implement traceId generator utility in src/lib/utils/trace.ts (UUID v4 generation)
+- [x] T021 Create API response helper in src/lib/utils/api.ts (success/error response builders)
+- [x] T022 Create validation utilities in src/lib/utils/validation.ts (file type, size, UUID validation)
+- [x] T023 Setup environment configuration loader in src/lib/utils/config.ts (read from .env)
+- [x] T024 Create system configuration YAML schema in config/system.yaml (upload limits, TTL, timeouts)
+- [x] T025 Implement storage service base structure in src/lib/services/storage.service.ts (directory creation, path utilities)
+- [x] T026 Create base API endpoint structure in src/routes/api/+server.ts (traceId middleware, error handling)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -76,18 +76,18 @@ Based on plan.md, this is a SvelteKit monorepo with:
 
 ### Implementation for User Story 1
 
-- [ ] T027 [P] [US1] Install i18n library (paraglide-js) in package.json
-- [ ] T028 [P] [US1] Initialize paraglide-js configuration with zh-CN and en-US locales
-- [ ] T029 [P] [US1] Create i18n message files in src/i18n/zh-CN.json (common UI strings, errors, success messages)
-- [ ] T030 [P] [US1] Create i18n message files in src/i18n/en-US.json (English translations)
-- [ ] T031 [US1] Implement i18n service in src/lib/services/i18n.service.ts (locale detection, switching, storage)
-- [ ] T032 [US1] Create language store in src/lib/stores/language.ts (reactive language state)
-- [ ] T033 [US1] Create root layout in src/routes/+layout.svelte (HTML structure, i18n provider, global styles)
-- [ ] T034 [US1] Create default landing page in src/routes/+page.svelte (welcome message, language switcher)
-- [ ] T035 [US1] Create language switcher component in src/lib/components/ui/LanguageSwitcher.svelte
-- [ ] T036 [US1] Configure HMR settings in vite.config.ts for optimal development experience
-- [ ] T037 [US1] Test development server startup and hot module replacement
-- [ ] T038 [US1] Test production build and verify output in build/ directory
+- [x] T027 [P] [US1] Install i18n library (paraglide-js) in package.json
+- [x] T028 [P] [US1] Initialize paraglide-js configuration with zh-CN and en-US locales
+- [x] T029 [P] [US1] Create i18n message files in src/i18n/zh-CN.json (common UI strings, errors, success messages)
+- [x] T030 [P] [US1] Create i18n message files in src/i18n/en-US.json (English translations)
+- [x] T031 [US1] Implement i18n service in src/lib/services/i18n.service.ts (locale detection, switching, storage)
+- [x] T032 [US1] Create language store in src/lib/stores/language.ts (reactive language state)
+- [x] T033 [US1] Create root layout in src/routes/+layout.svelte (HTML structure, i18n provider, global styles)
+- [x] T034 [US1] Create default landing page in src/routes/+page.svelte (welcome message, language switcher)
+- [x] T035 [US1] Create language switcher component in src/lib/components/ui/LanguageSwitcher.svelte
+- [x] T036 [US1] Configure HMR settings in vite.config.ts for optimal development experience
+- [x] T037 [US1] Test development server startup and hot module replacement
+- [x] T038 [US1] Test production build and verify output in build/ directory
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -101,20 +101,20 @@ Based on plan.md, this is a SvelteKit monorepo with:
 
 ### Implementation for User Story 2
 
-- [ ] T039 [P] [US2] Create Button component in src/lib/components/ui/Button.svelte (variants: primary, secondary, danger, disabled, loading)
-- [ ] T040 [P] [US2] Create Card component in src/lib/components/ui/Card.svelte (header, content, actions, collapsible)
-- [ ] T041 [P] [US2] Create Progress component in src/lib/components/ui/Progress.svelte (percentage, animated)
-- [ ] T042 [P] [US2] Create Modal component in src/lib/components/ui/Modal.svelte (overlay, close button, custom actions)
-- [ ] T043 [P] [US2] Create Dropdown component in src/lib/components/ui/Dropdown.svelte (single select, searchable)
-- [ ] T044 [P] [US2] Create Notification component in src/lib/components/ui/Notification.svelte (success, error, warning, info)
-- [ ] T045 [P] [US2] Create Input component in src/lib/components/ui/Input.svelte (text, validation, error states)
-- [ ] T046 [P] [US2] Create Textarea component in src/lib/components/ui/Textarea.svelte (auto-resize, character count)
-- [ ] T047 [US2] Create ResizablePanel component in src/lib/components/layout/ResizablePanel.svelte (drag handle, min/max constraints)
-- [ ] T048 [US2] Create SplitPane component in src/lib/components/layout/SplitPane.svelte (horizontal/vertical, nested support)
-- [ ] T049 [US2] Update main page layout in src/routes/+page.svelte (implement split pane: left panel with top/bottom, right panel)
-- [ ] T050 [US2] Add responsive breakpoints in tailwind.config.js (mobile, tablet, desktop)
-- [ ] T051 [US2] Implement responsive layout switching in src/lib/components/layout/SplitPane.svelte (stack on mobile)
-- [ ] T052 [US2] Create UI state store in src/lib/stores/ui.ts (panel sizes, theme preferences)
+- [x] T039 [P] [US2] Create Button component in src/lib/components/ui/Button.svelte (variants: primary, secondary, danger, disabled, loading)
+- [x] T040 [P] [US2] Create Card component in src/lib/components/ui/Card.svelte (header, content, actions, collapsible)
+- [x] T041 [P] [US2] Create Progress component in src/lib/components/ui/Progress.svelte (percentage, animated)
+- [x] T042 [P] [US2] Create Modal component in src/lib/components/ui/Modal.svelte (overlay, close button, custom actions)
+- [x] T043 [P] [US2] Create Dropdown component in src/lib/components/ui/Dropdown.svelte (single select, searchable)
+- [x] T044 [P] [US2] Create Notification component in src/lib/components/ui/Notification.svelte (success, error, warning, info)
+- [x] T045 [P] [US2] Create Input component in src/lib/components/ui/Input.svelte (text, validation, error states)
+- [x] T046 [P] [US2] Create Textarea component in src/lib/components/ui/Textarea.svelte (auto-resize, character count)
+- [x] T047 [US2] Create ResizablePanel component in src/lib/components/layout/ResizablePanel.svelte (drag handle, min/max constraints)
+- [x] T048 [US2] Create SplitPane component in src/lib/components/layout/SplitPane.svelte (horizontal/vertical, nested support)
+- [x] T049 [US2] Update main page layout in src/routes/+page.svelte (implement split pane: left panel with top/bottom, right panel)
+- [x] T050 [US2] Add responsive breakpoints in tailwind.config.js (mobile, tablet, desktop)
+- [x] T051 [US2] Implement responsive layout switching in src/lib/components/layout/SplitPane.svelte (stack on mobile)
+- [x] T052 [US2] Create UI state store in src/lib/stores/ui.ts (panel sizes, theme preferences)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -128,23 +128,23 @@ Based on plan.md, this is a SvelteKit monorepo with:
 
 ### Implementation for User Story 3
 
-- [ ] T053 [P] [US3] Create File entity interfaces in src/lib/types/models.ts (ImageMetadata, PDFMetadata, OfficeMetadata)
-- [ ] T054 [P] [US3] Create session store in src/lib/stores/session.ts (sessionId, files, language)
-- [ ] T055 [P] [US3] Create documents store in src/lib/stores/documents.ts (uploaded files, current preview)
-- [ ] T056 [US3] Implement storage service file operations in src/lib/services/storage.service.ts (save file, generate path, cleanup)
-- [ ] T057 [US3] Implement LibreOffice service in src/lib/services/office.service.ts (detect installation, convert Office to PDF)
-- [ ] T058 [US3] Create upload API endpoint in src/routes/api/upload/+server.ts (handle multipart, validate file, save to storage)
-- [ ] T059 [US3] Implement file validation in upload endpoint (type check, size limit, MIME validation)
-- [ ] T060 [US3] Implement Office conversion trigger in upload endpoint (create Task, queue conversion)
-- [ ] T061 [US3] Create Uploader component in src/lib/components/upload/Uploader.svelte (file picker, drag-and-drop, progress bar)
-- [ ] T062 [US3] Implement upload progress tracking in Uploader component (chunked upload, percentage display)
-- [ ] T063 [P] [US3] Install PDF.js library in package.json
-- [ ] T064 [US3] Create PDFPreview component in src/lib/components/preview/PDFPreview.svelte (render pages, zoom, navigation)
-- [ ] T065 [P] [US3] Create ImagePreview component in src/lib/components/preview/ImagePreview.svelte (zoom, pan, responsive)
-- [ ] T066 [US3] Create preview coordinator in src/routes/+page.svelte (switch between image/PDF preview based on file type)
-- [ ] T067 [US3] Implement error handling for upload failures (network errors, file type errors, size errors)
-- [ ] T068 [US3] Add upload success/error notifications using Notification component
-- [ ] T069 [US3] Implement file metadata extraction (image dimensions, PDF page count) in storage service
+- [x] T053 [P] [US3] Create File entity interfaces in src/lib/types/models.ts (ImageMetadata, PDFMetadata, OfficeMetadata)
+- [x] T054 [P] [US3] Create session store in src/lib/stores/session.ts (sessionId, files, language)
+- [x] T055 [P] [US3] Create documents store in src/lib/stores/documents.ts (uploaded files, current preview)
+- [x] T056 [US3] Implement storage service file operations in src/lib/services/storage.service.ts (save file, generate path, cleanup)
+- [x] T057 [US3] Implement LibreOffice service in src/lib/services/office.service.ts (detect installation, convert Office to PDF)
+- [x] T058 [US3] Create upload API endpoint in src/routes/api/upload/+server.ts (handle multipart, validate file, save to storage)
+- [x] T059 [US3] Implement file validation in upload endpoint (type check, size limit, MIME validation)
+- [x] T060 [US3] Implement Office conversion trigger in upload endpoint (create Task, queue conversion)
+- [x] T061 [US3] Create Uploader component in src/lib/components/upload/Uploader.svelte (file picker, drag-and-drop, progress bar)
+- [x] T062 [US3] Implement upload progress tracking in Uploader component (chunked upload, percentage display)
+- [x] T063 [P] [US3] Install PDF.js library in package.json
+- [x] T064 [US3] Create PDFPreview component in src/lib/components/preview/PDFPreview.svelte (render pages, zoom, navigation)
+- [x] T065 [P] [US3] Create ImagePreview component in src/lib/components/preview/ImagePreview.svelte (zoom, pan, responsive)
+- [x] T066 [US3] Create preview coordinator in src/routes/+page.svelte (switch between image/PDF preview based on file type)
+- [x] T067 [US3] Implement error handling for upload failures (network errors, file type errors, size errors)
+- [x] T068 [US3] Add upload success/error notifications using Notification component
+- [x] T069 [US3] Implement file metadata extraction (image dimensions, PDF page count) in storage service
 
 **Checkpoint**: At this point, User Story 3 should be fully functional and testable independently
 
@@ -158,19 +158,19 @@ Based on plan.md, this is a SvelteKit monorepo with:
 
 ### Implementation for User Story 4
 
-- [ ] T070 [US4] Implement health check endpoint in src/routes/api/health/+server.ts (LibreOffice availability, uptime)
-- [ ] T071 [US4] Create attachments upload endpoint in src/routes/api/attachments/+server.ts (similar to main upload, different category)
-- [ ] T072 [US4] Create task query endpoint in src/routes/api/task/[id]/+server.ts (return Task status and progress)
-- [ ] T073 [US4] Create file info endpoint in src/routes/api/files/[fileId]/+server.ts (GET file metadata)
-- [ ] T074 [US4] Create file delete endpoint in src/routes/api/files/[fileId]/+server.ts (DELETE operation)
-- [ ] T075 [US4] Create file download endpoint in src/routes/api/files/[fileId]/download/+server.ts (stream file content)
-- [ ] T076 [US4] Implement request logging middleware (log all API requests with traceId, duration, status)
-- [ ] T077 [US4] Implement error boundary for uncaught exceptions (catch all, log, return unified error)
-- [ ] T078 [US4] Add Accept-Language header parsing in API endpoints (detect user language preference)
-- [ ] T079 [US4] Implement i18n message resolution in API responses (resolve message keys to localized strings)
-- [ ] T080 [US4] Configure log file rotation in logger service (daily rotation, auto-cleanup)
-- [ ] T081 [US4] Add structured logging for key events (upload.start, upload.complete, convert.start, convert.done)
-- [ ] T082 [US4] Test all endpoints return correct unified response format (success and error cases)
+- [x] T070 [US4] Implement health check endpoint in src/routes/api/health/+server.ts (LibreOffice availability, uptime)
+- [x] T071 [US4] Create attachments upload endpoint in src/routes/api/attachments/+server.ts (similar to main upload, different category)
+- [x] T072 [US4] Create task query endpoint in src/routes/api/task/[id]/+server.ts (return Task status and progress)
+- [x] T073 [US4] Create file info endpoint in src/routes/api/files/[fileId]/+server.ts (GET file metadata)
+- [x] T074 [US4] Create file delete endpoint in src/routes/api/files/[fileId]/+server.ts (DELETE operation)
+- [x] T075 [US4] Create file download endpoint in src/routes/api/files/[fileId]/download/+server.ts (stream file content)
+- [x] T076 [US4] Implement request logging middleware (log all requests with traceId, duration, HTTP status)
+- [x] T077 [US4] Implement error boundary for uncaught exceptions (global error handler, return user-friendly errors)
+- [x] T078 [US4] Parse Accept-Language header in API endpoints (determine user language preference)
+- [x] T079 [US4] Implement i18n message resolution in API responses (resolve message keys to localized strings)
+- [x] T080 [US4] Configure log file rotation in logger service (daily rotation, auto-cleanup)
+- [x] T081 [US4] Add structured logging for key events (upload.start, upload.complete, convert.start, convert.done)
+- [x] T082 [US4] Test all endpoints return correct unified response format (success and error cases)
 
 **Checkpoint**: At this point, User Stories 1-4 should all be independently functional
 
@@ -184,18 +184,18 @@ Based on plan.md, this is a SvelteKit monorepo with:
 
 ### Implementation for User Story 5
 
-- [ ] T083 [P] [US5] Create model configuration schema in config/models.yaml (model ID, name, category, endpoint, timeout, concurrency)
-- [ ] T084 [P] [US5] Create ModelConfig type in src/lib/types/config.ts (categories: ocr, translate, qa, review, extract)
-- [ ] T085 [US5] Implement config loader in src/lib/utils/config.ts (parse YAML, validate schema, read API keys from env)
-- [ ] T086 [US5] Implement model service in src/lib/services/model.service.ts (load configs, select model by category)
-- [ ] T087 [US5] Implement OpenAI adapter in src/lib/services/model.service.ts (format requests, handle responses)
-- [ ] T088 [US5] Implement timeout handling in model service (abort requests after configured timeout)
-- [ ] T089 [US5] Implement concurrency limiter in model service (queue requests exceeding limit)
-- [ ] T090 [US5] Implement request queue with position tracking (return queue position in response)
-- [ ] T091 [US5] Implement error handling for model calls (network errors, API errors, structured logging)
-- [ ] T092 [US5] Implement config reload endpoint in src/routes/api/config/reload/+server.ts (hot reload without restart)
-- [ ] T093 [US5] Add model availability check to health endpoint (test connectivity to configured models)
-- [ ] T094 [US5] Document model configuration format in config/models.yaml (inline comments, examples)
+- [x] T083 [P] [US5] Create model configuration schema in config/models.yaml (model ID, name, category, endpoint, timeout, concurrency)
+- [x] T084 [P] [US5] Create ModelConfig type in src/lib/types/config.ts (categories: ocr, translate, qa, review, extract)
+- [x] T085 [US5] Implement config loader in src/lib/utils/config.ts (parse YAML, validate schema, read API keys from env)
+- [x] T086 [US5] Implement model service in src/lib/services/model.service.ts (load configs, select model by category)
+- [x] T087 [US5] Implement OpenAI adapter in src/lib/services/model.service.ts (format requests, handle responses)
+- [x] T088 [US5] Implement timeout handling in model service (abort requests after configured timeout)
+- [x] T089 [US5] Implement concurrency limiter in model service (queue requests exceeding limit)
+- [x] T090 [US5] Implement request queue with position tracking (return queue position in response)
+- [x] T091 [US5] Implement error handling for model calls (network errors, API errors, structured logging)
+- [x] T092 [US5] Implement config reload endpoint in src/routes/api/config/reload/+server.ts (hot reload without restart)
+- [x] T093 [US5] Add model availability check to health endpoint (test connectivity to configured models)
+- [x] T094 [US5] Document model configuration format in config/models.yaml (inline comments, examples)
 
 **Checkpoint**: At this point, User Story 5 should be independently functional
 
@@ -209,19 +209,19 @@ Based on plan.md, this is a SvelteKit monorepo with:
 
 ### Implementation for User Story 6
 
-- [ ] T095 [US6] Implement session creation in storage service (generate sessionId, create directory structure)
-- [ ] T096 [US6] Implement file path generation (uploads/, converted/, results/ subdirectories)
-- [ ] T097 [US6] Add file metadata persistence in storage service (store File entity as JSON alongside file)
-- [ ] T098 [US6] Implement TTL tracking in storage service (record creation time, calculate expiry)
-- [ ] T099 [US6] Create cleanup scheduler in src/lib/services/cleanup.service.ts (run hourly, check TTL, delete expired)
-- [ ] T100 [US6] Implement file deletion logic (remove file and metadata, delete empty directories)
-- [ ] T101 [US6] Implement disk usage tracking in storage service (calculate total size, check against quota)
-- [ ] T102 [US6] Implement quota check before upload (reject if exceeds limit)
-- [ ] T103 [US6] Add session expiry handling (mark session expired, cleanup files)
-- [ ] T104 [US6] Configure TTL in config/system.yaml (default 24 hours, configurable)
-- [ ] T105 [US6] Configure disk quota in config/system.yaml (default 100GB, configurable)
-- [ ] T106 [US6] Add cleanup logging (log deleted files, freed space, duration)
-- [ ] T107 [US6] Initialize cleanup scheduler on server startup in src/hooks.server.ts
+- [x] T095 [US6] Implement session creation in storage service (generate sessionId, create directory structure)
+- [x] T096 [US6] Implement file path generation (uploads/, converted/, results/ subdirectories)
+- [x] T097 [US6] Add file metadata persistence in storage service (store File entity as JSON alongside file)
+- [x] T098 [US6] Implement TTL tracking in storage service (record creation time, calculate expiry)
+- [x] T099 [US6] Create cleanup scheduler in src/lib/services/cleanup.service.ts (run hourly, check TTL, delete expired)
+- [x] T100 [US6] Implement file deletion logic (remove file and metadata, delete empty directories)
+- [x] T101 [US6] Implement disk usage tracking in storage service (calculate total size, check against quota)
+- [x] T102 [US6] Implement quota check before upload (reject if exceeds limit)
+- [x] T103 [US6] Add session expiry handling (mark session expired, cleanup files)
+- [x] T104 [US6] Configure TTL in config/system.yaml (default 24 hours, configurable)
+- [x] T105 [US6] Configure disk quota in config/system.yaml (default 100GB, configurable)
+- [x] T106 [US6] Add cleanup logging (log deleted files, freed space, duration)
+- [x] T107 [US6] Initialize cleanup scheduler on server startup in src/hooks.server.ts
 
 **Checkpoint**: At this point, User Story 6 should be independently functional
 
@@ -235,19 +235,19 @@ Based on plan.md, this is a SvelteKit monorepo with:
 
 ### Implementation for User Story 7
 
-- [ ] T108 [P] [US7] Complete all UI message keys in src/i18n/zh-CN.json (buttons, labels, placeholders, tooltips)
-- [ ] T109 [P] [US7] Complete all UI message translations in src/i18n/en-US.json
-- [ ] T110 [P] [US7] Add all error message keys in src/i18n/zh-CN.json (validation, upload, conversion, system errors)
-- [ ] T111 [P] [US7] Add all error message translations in src/i18n/en-US.json
-- [ ] T112 [P] [US7] Add success message keys in src/i18n/zh-CN.json (upload success, conversion success)
-- [ ] T113 [P] [US7] Add success message translations in src/i18n/en-US.json
-- [ ] T114 [US7] Implement server-side i18n resolver (parse Accept-Language, resolve message keys)
-- [ ] T115 [US7] Update all API endpoints to use i18n messages (replace hardcoded strings with keys)
-- [ ] T116 [US7] Update logger service to include i18n keys in log entries (alongside resolved messages)
-- [ ] T117 [US7] Add missing translation detection in development mode (warn in console)
-- [ ] T118 [US7] Test language persistence (localStorage, survives page refresh)
-- [ ] T119 [US7] Test language switching updates all UI elements immediately
-- [ ] T120 [US7] Verify all components use i18n keys (no hardcoded strings)
+- [x] T108 [P] [US7] Complete all UI message keys in src/i18n/zh-CN.json (buttons, labels, placeholders, tooltips)
+- [x] T109 [P] [US7] Complete all UI message translations in src/i18n/en-US.json
+- [x] T110 [P] [US7] Add all error message keys in src/i18n/zh-CN.json (validation, upload, conversion, system errors)
+- [x] T111 [P] [US7] Add all error message translations in src/i18n/en-US.json
+- [x] T112 [P] [US7] Add success message keys in src/i18n/zh-CN.json (upload success, conversion success)
+- [x] T113 [P] [US7] Add success message translations in src/i18n/en-US.json
+- [x] T114 [US7] Implement server-side i18n resolver (parse Accept-Language, resolve message keys)
+- [x] T115 [US7] Update all API endpoints to use i18n messages (replace hardcoded strings with keys)
+- [x] T116 [US7] Update logger service to include i18n keys in log entries (alongside resolved messages)
+- [x] T117 [US7] Add missing translation detection in development mode (warn in console)
+- [x] T118 [US7] Test language persistence (localStorage, survives page refresh)
+- [x] T119 [US7] Test language switching updates all UI elements immediately
+- [x] T120 [US7] Verify all components use i18n keys (no hardcoded strings)
 
 **Checkpoint**: At this point, User Story 7 should be independently functional
 
@@ -287,19 +287,19 @@ Based on plan.md, this is a SvelteKit monorepo with:
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T138 [P] Update README.md with project overview, setup instructions, features
-- [ ] T139 [P] Create development guide in docs/DEVELOPMENT.md (architecture, conventions, testing)
-- [ ] T140 [P] Create API documentation based on OpenAPI spec in docs/API.md
-- [ ] T141 Code review and refactoring (remove duplication, improve naming, add comments)
-- [ ] T142 Performance optimization (lazy loading, code splitting, bundle size analysis)
-- [ ] T143 Accessibility audit (keyboard navigation, ARIA labels, screen reader testing)
-- [ ] T144 Cross-browser testing (Chrome, Firefox, Safari, Edge)
-- [ ] T145 Security hardening (input sanitization, CORS configuration, rate limiting)
-- [ ] T146 Add unit tests for core services in tests/unit/ (logger, storage, i18n, validation)
-- [ ] T147 Add integration tests in tests/integration/ (upload flow, conversion flow, cleanup)
-- [ ] T148 Run all validation steps from quickstart.md (verify complete setup works)
-- [ ] T149 [P] Create deployment guide in docs/DEPLOYMENT.md (environment setup, build process)
-- [ ] T150 Final quality gate check (pnpm test && pnpm lint && pnpm check)
+- [x] T138 [P] Update README.md with project overview, setup instructions, features
+- [x] T139 [P] Create development guide in docs/DEVELOPMENT.md (architecture, conventions, testing)
+- [x] T140 [P] Create API documentation based on OpenAPI spec in docs/API.md
+- [x] T141 Code review and refactoring (remove duplication, improve naming, add comments)
+- [x] T142 Performance optimization (lazy loading, code splitting, bundle size analysis)
+- [x] T143 Accessibility audit (keyboard navigation, ARIA labels, screen reader testing)
+- [x] T144 Cross-browser testing (Chrome, Firefox, Safari, Edge)
+- [x] T145 Security hardening (input sanitization, CORS configuration, rate limiting)
+- [x] T146 Add unit tests for core services in tests/unit/ (logger, storage, i18n, validation)
+- [x] T147 Add integration tests in tests/integration/ (upload flow, conversion flow, cleanup)
+- [x] T148 Run all validation steps from quickstart.md (verify complete setup works)
+- [x] T149 [P] Create deployment guide in docs/DEPLOYMENT.md (environment setup, build process)
+- [x] T150 Final quality gate check (pnpm test && pnpm lint && pnpm check)
 
 ---
 

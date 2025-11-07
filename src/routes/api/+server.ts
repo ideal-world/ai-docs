@@ -2,35 +2,42 @@ import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { generateTraceId } from '$lib/utils/trace';
 import { createSuccessResponse, createErrorResponse } from '$lib/utils/api';
-import { handleError } from '$lib/utils/error';
 import { logger } from '$lib/services/logger.service';
 
 /**
- * Example API endpoint with traceId and unified error handling
+ * Base API endpoint - demonstrates unified response format and error handling
+ * All API endpoints should follow this pattern:
+ * 1. Generate traceId at the start
+ * 2. Log request details
+ * 3. Use createSuccessResponse/createErrorResponse
+ * 4. Log errors with full context
  */
 export const GET: RequestHandler = async ({ request }) => {
 	const traceId = generateTraceId();
+	const language = request.headers.get('Accept-Language')?.split(',')[0] || 'en-US';
 
 	try {
-		logger.info('API request received', traceId, {
-			method: request.method,
-			url: request.url
-		});
+		logger.info(
+			'API health check',
+			'api.health.request',
+			{
+				method: request.method,
+				url: request.url,
+				language
+			},
+			traceId
+		);
 
-		// Example response
 		const data = {
-			message: 'API endpoint working',
-			timestamp: new Date().toISOString()
+			status: 'ok',
+			timestamp: new Date().toISOString(),
+			version: '0.1.0'
 		};
 
-		return json(createSuccessResponse(data, traceId));
+		return json(createSuccessResponse('api.health.success', traceId, data));
 	} catch (error) {
-		const errorInfo = handleError(error);
-		logger.error('API request failed', traceId, errorInfo);
+		logger.error('API request failed', error as Error, { url: request.url }, traceId);
 
-		return json(
-			createErrorResponse(errorInfo.code, errorInfo.message, traceId, errorInfo.details),
-			{ status: errorInfo.statusCode }
-		);
+		return json(createErrorResponse('INTERNAL_ERROR', 'error.internal', traceId), { status: 500 });
 	}
 };

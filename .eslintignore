@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.svelte-kit/
+.output/
+
+# Generated files
+src/lib/paraglide/
+
+# Test coverage
+coverage/
+
+# Minified files
+*.min.js
+*.min.css
+
+# Package manager files
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Environment files
+.env
+.env.*
+
+# Data directory
+data/

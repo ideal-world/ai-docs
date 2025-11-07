@@ -1,0 +1,74 @@
+# Model Configuration
+# T083: Model configuration schema
+# Define AI models for different categories: ocr, translate, qa, review, extract
+
+# OCR Models - For Optical Character Recognition
+ocr:
+  - id: ocr-openai-gpt4o
+    name: GPT-4 Vision OCR
+    provider: openai
+    model: gpt-4o
+    endpoint: https://api.openai.com/v1/chat/completions
+    timeout: 60000 # 60 seconds
+    max_concurrency: 5
+    enabled: true
+
+  - id: ocr-azure-vision
+    name: Azure Computer Vision OCR
+    provider: azure
+    model: azure-vision-ocr
+    endpoint: ${AZURE_VISION_ENDPOINT}
+    timeout: 30000 # 30 seconds
+    max_concurrency: 10
+    enabled: false # Disabled by default
+
+# Translation Models - For document translation
+translate:
+  - id: translate-openai-gpt4
+    name: GPT-4 Translation
+    provider: openai
+    model: gpt-4-turbo
+    endpoint: https://api.openai.com/v1/chat/completions
+    timeout: 45000 # 45 seconds
+    max_concurrency: 8
+    enabled: true
+
+# QA Models - For question answering
+qa:
+  - id: qa-openai-gpt4o
+    name: GPT-4o Q&A
+    provider: openai
+    model: gpt-4o
+    endpoint: https://api.openai.com/v1/chat/completions
+    timeout: 30000 # 30 seconds
+    max_concurrency: 10
+    enabled: true
+
+# Review Models - For document review and analysis
+review:
+  - id: review-openai-gpt4
+    name: GPT-4 Document Review
+    provider: openai
+    model: gpt-4-turbo
+    endpoint: https://api.openai.com/v1/chat/completions
+    timeout: 60000 # 60 seconds
+    max_concurrency: 5
+    enabled: true
+
+# Extract Models - For information extraction
+extract:
+  - id: extract-openai-gpt4o
+    name: GPT-4o Extraction
+    provider: openai
+    model: gpt-4o
+    endpoint: https://api.openai.com/v1/chat/completions
+    timeout: 45000 # 45 seconds
+    max_concurrency: 8
+    enabled: true
+
+# Global Settings
+settings:
+  default_timeout: 30000 # Default timeout for all models (ms)
+  default_max_concurrency: 5 # Default concurrency limit
+  retry_attempts: 3 # Number of retry attempts on failure
+  retry_delay: 1000 # Delay between retries (ms)
