@@ -16,6 +16,7 @@
 ## Path Conventions
 
 Based on plan.md, this is a SvelteKit monorepo with:
+
 - Main app: `src/` at repository root
 - SDK package: `packages/sdk/`
 - Config: `config/`
@@ -410,7 +411,7 @@ Task T044: "Create Notification component in src/lib/components/ui/Notification.
 With 3 developers after Foundational phase:
 
 1. **Week 1**: Team completes Setup + Foundational together (~2 days)
-2. **Week 1-2**: 
+2. **Week 1-2**:
    - Developer A: US1 + US2 (foundation + components)
    - Developer B: US5 (model config - independent)
    - Developer C: Documentation setup

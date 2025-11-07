@@ -55,17 +55,17 @@ paths:
                   format: uuid
                   description: 会话 ID(可选,不提供则自动创建)
       responses:
-        "200":
+        '200':
           description: 上传成功
           content:
             application/json:
               schema:
                 allOf:
-                  - $ref: "#/components/schemas/ApiSuccessResponse"
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/UploadResponse"
+                        $ref: '#/components/schemas/UploadResponse'
               examples:
                 image:
                   summary: 上传图片
@@ -73,13 +73,13 @@ paths:
                     success: true
                     code: OK
                     message: upload.success
-                    timestamp: "2025-11-06T09:30:45.123Z"
-                    traceId: "abc-123-xyz"
+                    timestamp: '2025-11-06T09:30:45.123Z'
+                    traceId: 'abc-123-xyz'
                     data:
-                      fileId: "f-001"
-                      sessionId: "s-001"
-                      type: "image"
-                      name: "document.png"
+                      fileId: 'f-001'
+                      sessionId: 's-001'
+                      type: 'image'
+                      name: 'document.png'
                       size: 1024000
                 office:
                   summary: 上传 Office 文件
@@ -87,21 +87,21 @@ paths:
                     success: true
                     code: OK
                     message: upload.success
-                    timestamp: "2025-11-06T09:30:45.123Z"
-                    traceId: "abc-123-xyz"
+                    timestamp: '2025-11-06T09:30:45.123Z'
+                    traceId: 'abc-123-xyz'
                     data:
-                      fileId: "f-002"
-                      sessionId: "s-001"
-                      type: "office"
-                      name: "document.docx"
+                      fileId: 'f-002'
+                      sessionId: 's-001'
+                      type: 'office'
+                      name: 'document.docx'
                       size: 2048000
-                      taskId: "t-001"
-        "400":
+                      taskId: 't-001'
+        '400':
           description: 请求错误(文件类型不支持、大小超限等)
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiErrorResponse"
+                $ref: '#/components/schemas/ApiErrorResponse'
               examples:
                 fileSize:
                   summary: 文件过大
@@ -109,17 +109,17 @@ paths:
                     success: false
                     code: VALIDATION_ERROR
                     message: error.upload.size_exceeded
-                    timestamp: "2025-11-06T09:30:45.123Z"
-                    traceId: "abc-123-xyz"
+                    timestamp: '2025-11-06T09:30:45.123Z'
+                    traceId: 'abc-123-xyz'
                     details:
                       maxSize: 209715200
                       actualSize: 300000000
-        "500":
+        '500':
           description: 服务器错误
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiErrorResponse"
+                $ref: '#/components/schemas/ApiErrorResponse'
 
   /attachments:
     post:
@@ -145,17 +145,17 @@ paths:
                   type: string
                   format: uuid
       responses:
-        "200":
+        '200':
           description: 上传成功
           content:
             application/json:
               schema:
                 allOf:
-                  - $ref: "#/components/schemas/ApiSuccessResponse"
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/UploadResponse"
+                        $ref: '#/components/schemas/UploadResponse'
 
   /files/{fileId}:
     get:
@@ -171,23 +171,23 @@ paths:
             type: string
             format: uuid
       responses:
-        "200":
+        '200':
           description: 文件信息
           content:
             application/json:
               schema:
                 allOf:
-                  - $ref: "#/components/schemas/ApiSuccessResponse"
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/File"
-        "404":
+                        $ref: '#/components/schemas/File'
+        '404':
           description: 文件不存在
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiErrorResponse"
+                $ref: '#/components/schemas/ApiErrorResponse'
 
     delete:
       summary: 删除文件
@@ -202,12 +202,12 @@ paths:
             type: string
             format: uuid
       responses:
-        "200":
+        '200':
           description: 删除成功
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiSuccessResponse"
+                $ref: '#/components/schemas/ApiSuccessResponse'
 
   /files/{fileId}/download:
     get:
@@ -223,7 +223,7 @@ paths:
             type: string
             format: uuid
       responses:
-        "200":
+        '200':
           description: 文件内容
           content:
             application/octet-stream:
@@ -246,17 +246,17 @@ paths:
             type: string
             format: uuid
       responses:
-        "200":
+        '200':
           description: 任务信息
           content:
             application/json:
               schema:
                 allOf:
-                  - $ref: "#/components/schemas/ApiSuccessResponse"
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/Task"
+                        $ref: '#/components/schemas/Task'
               examples:
                 running:
                   summary: 任务运行中
@@ -264,35 +264,35 @@ paths:
                     success: true
                     code: OK
                     message: task.query.success
-                    timestamp: "2025-11-06T09:30:45.123Z"
-                    traceId: "abc-123-xyz"
+                    timestamp: '2025-11-06T09:30:45.123Z'
+                    traceId: 'abc-123-xyz'
                     data:
-                      id: "t-001"
-                      type: "convert"
-                      status: "running"
+                      id: 't-001'
+                      type: 'convert'
+                      status: 'running'
                       progress: 45
-                      stage: "Converting page 5/10"
-                      createdAt: "2025-11-06T09:30:00.000Z"
-                      startedAt: "2025-11-06T09:30:01.000Z"
-                      eta: "2025-11-06T09:31:00.000Z"
+                      stage: 'Converting page 5/10'
+                      createdAt: '2025-11-06T09:30:00.000Z'
+                      startedAt: '2025-11-06T09:30:01.000Z'
+                      eta: '2025-11-06T09:31:00.000Z'
                 succeeded:
                   summary: 任务成功
                   value:
                     success: true
                     code: OK
                     message: task.query.success
-                    timestamp: "2025-11-06T09:30:45.123Z"
-                    traceId: "abc-123-xyz"
+                    timestamp: '2025-11-06T09:30:45.123Z'
+                    traceId: 'abc-123-xyz'
                     data:
-                      id: "t-001"
-                      type: "convert"
-                      status: "succeeded"
+                      id: 't-001'
+                      type: 'convert'
+                      status: 'succeeded'
                       progress: 100
-                      createdAt: "2025-11-06T09:30:00.000Z"
-                      startedAt: "2025-11-06T09:30:01.000Z"
-                      completedAt: "2025-11-06T09:30:50.000Z"
+                      createdAt: '2025-11-06T09:30:00.000Z'
+                      startedAt: '2025-11-06T09:30:01.000Z'
+                      completedAt: '2025-11-06T09:30:50.000Z'
                       result:
-                        fileId: "f-003"
+                        fileId: 'f-003'
 
   /health:
     get:
@@ -302,29 +302,29 @@ paths:
         - 系统
       operationId: healthCheck
       responses:
-        "200":
+        '200':
           description: 服务健康
           content:
             application/json:
               schema:
                 allOf:
-                  - $ref: "#/components/schemas/ApiSuccessResponse"
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
                   - type: object
                     properties:
                       data:
-                        $ref: "#/components/schemas/HealthStatus"
+                        $ref: '#/components/schemas/HealthStatus'
               example:
                 success: true
                 code: OK
                 message: health.ok
-                timestamp: "2025-11-06T09:30:45.123Z"
-                traceId: "abc-123-xyz"
+                timestamp: '2025-11-06T09:30:45.123Z'
+                traceId: 'abc-123-xyz'
                 data:
-                  status: "healthy"
+                  status: 'healthy'
                   services:
                     libreoffice:
                       available: true
-                      version: "7.6.4.1"
+                      version: '7.6.4.1'
                   uptime: 86400
 
 components:
@@ -434,9 +434,9 @@ components:
           format: date-time
         metadata:
           oneOf:
-            - $ref: "#/components/schemas/ImageMetadata"
-            - $ref: "#/components/schemas/PDFMetadata"
-            - $ref: "#/components/schemas/OfficeMetadata"
+            - $ref: '#/components/schemas/ImageMetadata'
+            - $ref: '#/components/schemas/PDFMetadata'
+            - $ref: '#/components/schemas/OfficeMetadata'
 
     ImageMetadata:
       type: object

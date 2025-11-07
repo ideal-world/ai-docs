@@ -1,0 +1,15 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"welcome": "Welcome to AI Document Platform",
+	"language": "Language",
+	"upload": "Upload",
+	"preview": "Preview",
+	"file": "File",
+	"processing": "Processing",
+	"success": "Success",
+	"error": "Error",
+	"upload_file": "Upload File",
+	"select_language": "Select Language",
+	"chinese": "中文",
+	"english": "English"
+}
