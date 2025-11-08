@@ -91,13 +91,13 @@
 	<!-- Toolbar -->
 	<div class="toolbar">
 		<div class="toolbar-section">
-			<Button variant="secondary" size="sm" onclick={zoomOut} disabled={scale <= 0.25}>
+			<Button variant="secondary" size="sm" on:click={zoomOut} disabled={scale <= 0.25}>
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
 				</svg>
 			</Button>
 			<span class="zoom-info">{Math.round(scale * 100)}%</span>
-			<Button variant="secondary" size="sm" onclick={zoomIn} disabled={scale >= 5.0}>
+			<Button variant="secondary" size="sm" on:click={zoomIn} disabled={scale >= 5.0}>
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
@@ -107,8 +107,8 @@
 					/>
 				</svg>
 			</Button>
-			<Button variant="secondary" size="sm" onclick={resetZoom}>100%</Button>
-			<Button variant="secondary" size="sm" onclick={fitToScreen}>
+			<Button variant="secondary" size="sm" on:click={resetZoom}>100%</Button>
+			<Button variant="secondary" size="sm" on:click={fitToScreen}>
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"

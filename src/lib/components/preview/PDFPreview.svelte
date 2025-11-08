@@ -17,34 +17,54 @@
 		numPages: number;
 		getPage: (num: number) => Promise<unknown>;
 	}
+
+	interface LoadingTask {
+		promise: Promise<PdfDocLite>;
+		destroy?: () => void;
+	}
 	let pdfDoc: PdfDocLite | null = $state(null);
 	let pdfjsLib: typeof import('pdfjs-dist') | null = $state(null);
 	let pageRendering = $state(false);
+	let currentLoadingTask: LoadingTask | null = null;
+	let currentLoadToken = 0;
+	let lastLoadedUrl: string | null = null;
 
 	onMount(async () => {
 		// Dynamically import pdfjs to avoid bloating initial bundle
 		const lib = await import('pdfjs-dist');
 		pdfjsLib = lib;
-		// Set worker path using the loaded version
-		lib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${lib.version}/pdf.worker.min.mjs`;
 
-		await loadPdf();
+		// Use worker from node_modules via Vite's public URL handling
+		// The worker file is in node_modules/pdfjs-dist/build/pdf.worker.mjs
+		const workerUrl = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url);
+		lib.GlobalWorkerOptions.workerSrc = workerUrl.toString();
+
+		// Wait for worker to load via reactive effect
 	});
 
-	async function loadPdf() {
+	async function loadPdf(url: string) {
 		try {
 			if (!pdfjsLib) return;
-			const loadingTask = pdfjsLib.getDocument(fileUrl);
-			pdfDoc = await loadingTask.promise;
+			const token = ++currentLoadToken;
+			currentLoadingTask?.destroy?.();
+			const loadingTask = pdfjsLib.getDocument(url) as unknown as LoadingTask;
+			currentLoadingTask = loadingTask;
+			const doc = await loadingTask.promise;
+			if (token !== currentLoadToken) {
+				loadingTask.destroy?.();
+				return;
+			}
+			pdfDoc = doc;
 			pageCount = pdfDoc.numPages;
-			await renderPage(pageNum);
+			pageNum = Math.min(pageNum, pageCount) || 1;
+			await renderPage(pageNum, token);
 		} catch (error) {
 			console.error('Error loading PDF:', error);
 		}
 	}
 
-	async function renderPage(num: number) {
-		if (!pdfDoc || pageRendering) return;
+	async function renderPage(num: number, token = currentLoadToken) {
+		if (!pdfDoc || pageRendering || token !== currentLoadToken) return;
 
 		pageRendering = true;
 
@@ -62,6 +82,10 @@
 
 			const canvas = canvasRef;
 			const context = canvas.getContext('2d');
+			if (!context) {
+				pageRendering = false;
+				return;
+			}
 
 			canvas.height = viewport.height;
 			canvas.width = viewport.width;
@@ -75,7 +99,9 @@
 		} catch (error) {
 			console.error('Error rendering page:', error);
 		} finally {
-			pageRendering = false;
+			if (token === currentLoadToken) {
+				pageRendering = false;
+			}
 		}
 	}
 
@@ -105,13 +131,30 @@
 		scale = 1.0;
 		renderPage(pageNum);
 	}
+
+	$effect(() => {
+		const lib = pdfjsLib;
+		const url = fileUrl;
+		if (!lib || !url) {
+			return;
+		}
+
+		if (lastLoadedUrl === url) {
+			return;
+		}
+
+		lastLoadedUrl = url;
+		scale = 1.0;
+		pageNum = 1;
+		loadPdf(url);
+	});
 </script>
 
 <div class="pdf-preview">
 	<!-- Toolbar -->
 	<div class="toolbar">
 		<div class="toolbar-section">
-			<Button variant="secondary" size="sm" onclick={previousPage} disabled={pageNum <= 1}>
+			<Button variant="secondary" size="sm" on:click={previousPage} disabled={pageNum <= 1}>
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
@@ -124,7 +167,7 @@
 			<span class="page-info">
 				{pageNum} / {pageCount}
 			</span>
-			<Button variant="secondary" size="sm" onclick={nextPage} disabled={pageNum >= pageCount}>
+			<Button variant="secondary" size="sm" on:click={nextPage} disabled={pageNum >= pageCount}>
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
 				</svg>
@@ -132,13 +175,13 @@
 		</div>
 
 		<div class="toolbar-section">
-			<Button variant="secondary" size="sm" onclick={zoomOut} disabled={scale <= 0.5}>
+			<Button variant="secondary" size="sm" on:click={zoomOut} disabled={scale <= 0.5}>
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
 				</svg>
 			</Button>
 			<span class="zoom-info">{Math.round(scale * 100)}%</span>
-			<Button variant="secondary" size="sm" onclick={zoomIn} disabled={scale >= 3.0}>
+			<Button variant="secondary" size="sm" on:click={zoomIn} disabled={scale >= 3.0}>
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
@@ -148,7 +191,7 @@
 					/>
 				</svg>
 			</Button>
-			<Button variant="secondary" size="sm" onclick={resetZoom}>100%</Button>
+			<Button variant="secondary" size="sm" on:click={resetZoom}>100%</Button>
 		</div>
 
 		<div class="toolbar-section">

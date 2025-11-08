@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { documentsStore } from '$lib/stores/documents';
 	import { sessionId } from '$lib/stores/session';
+	import { currentLanguage } from '$lib/stores/language';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Progress from '$lib/components/ui/Progress.svelte';
 	import * as m from '$lib/paraglide/messages';
@@ -18,6 +19,18 @@
 	let isUploading = $state(false);
 	let uploadProgress = $state<Map<string, number>>(new Map());
 	let fileInputRef: HTMLInputElement;
+
+	// Reactive i18n messages
+	let uploadMessages = $derived.by(() => {
+		$currentLanguage; // Trigger re-computation
+		return {
+			uploading: m.common_uploading(),
+			dragDrop: m.upload_drag_drop(),
+			or: m.upload_or(),
+			selectFiles: m.upload_select_files(),
+			supportedFormats: m.upload_supported_formats()
+		};
+	});
 
 	function handleDragEnter(e: DragEvent) {
 		e.preventDefault();
@@ -73,14 +86,20 @@
 			});
 			const result = await response.json();
 
+			console.log('Upload response:', result); // Debug log
+
 			if (!response.ok) {
 				throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
 			}
 
 			if (result.success && result.data?.files) {
+				console.log('Files to add:', result.data.files); // Debug log
+				console.log('documentsStore before:', $documentsStore.files.length); // Debug log
 				(result.data.files as Array<Record<string, unknown>>).forEach((fileObj) => {
+					console.log('Adding file:', fileObj); // Debug log
 					documentsStore.addFile(fileObj as unknown as import('$lib/types/models').File);
 				});
+				console.log('documentsStore after:', $documentsStore.files.length); // Debug log
 				onUploadComplete?.(result.data.files);
 			} else {
 				throw new Error(result.message || 'Upload failed');
@@ -110,7 +129,10 @@
 	role="button"
 	tabindex="0"
 	onkeydown={(e) => e.key === 'Enter' && openFileDialog()}
-	onclick={openFileDialog}
+	onclick={(e) => {
+		// 仅在点击空白区域（而不是内部按钮等控件）时触发文件对话框，避免重复弹出
+		if (e.target === e.currentTarget) openFileDialog();
+	}}
 >
 	<input
 		bind:this={fileInputRef}
@@ -124,7 +146,7 @@
 	{#if isUploading}
 		<div class="upload-progress">
 			<Progress value={50} color="primary" />
-			<p class="text-sm mt-2">{m.common_uploading()}</p>
+			<p class="text-sm mt-2">{uploadMessages.uploading}</p>
 		</div>
 	{:else}
 		<div class="upload-prompt">
@@ -142,13 +164,13 @@
 					d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
 				/>
 			</svg>
-			<p class="text-lg font-semibold mb-2">{m.upload_drag_drop()}</p>
-			<p class="text-sm text-gray-500 mb-4">{m.upload_or()}</p>
-			<Button variant="primary" onclick={openFileDialog}>
-				{m.upload_select_files()}
+			<p class="text-lg font-semibold mb-2">{uploadMessages.dragDrop}</p>
+			<p class="text-sm text-gray-500 mb-4">{uploadMessages.or}</p>
+			<Button variant="primary" on:click={openFileDialog}>
+				{uploadMessages.selectFiles}
 			</Button>
 			<p class="text-xs text-gray-400 mt-4">
-				{m.upload_supported_formats()}: JPG, PNG, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX
+				{uploadMessages.supportedFormats}: JPG, PNG, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX
 			</p>
 		</div>
 	{/if}

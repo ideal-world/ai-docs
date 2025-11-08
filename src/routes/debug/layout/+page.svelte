@@ -16,7 +16,7 @@
 		<p class="text-gray-600 mb-4">Layout Components Debug - 测试可调整大小的面板和分割布局</p>
 
 		<div class="flex gap-2">
-			<Button onclick={toggleOrientation}>
+			<Button on:click={toggleOrientation}>
 				切换方向: {orientation === 'horizontal' ? '水平' : '垂直'}
 			</Button>
 		</div>

@@ -6,19 +6,29 @@
 		const target = event.target as HTMLSelectElement;
 		currentLanguage.set(target.value);
 	}
+
+	// Reactive i18n labels
+	let labels = $derived.by(() => {
+		$currentLanguage; // Trigger re-computation
+		return {
+			language: m.language(),
+			chinese: m.chinese(),
+			english: m.english()
+		};
+	});
 </script>
 
 <div class="flex items-center gap-2">
 	<label for="language-select" class="text-sm font-medium">
-		{m.language()}
+		{labels.language}
 	</label>
 	<select
 		id="language-select"
 		class="select select-bordered"
 		value={$currentLanguage}
-		on:change={handleLanguageChange}
+		onchange={handleLanguageChange}
 	>
-		<option value="zh-cn">{m.chinese()}</option>
-		<option value="en-us">{m.english()}</option>
+		<option value="zh-cn">{labels.chinese}</option>
+		<option value="en-us">{labels.english}</option>
 	</select>
 </div>

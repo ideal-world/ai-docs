@@ -25,6 +25,14 @@
 			type: 'success',
 			message: `成功上传 ${uploadedFiles.length} 个文件 / Successfully uploaded ${uploadedFiles.length} file(s)`
 		};
+
+		// Auto-select the first uploaded file to show preview if none selected
+		if (!selectedFile && uploadedFiles.length > 0) {
+			const first = files.find((f) => f.id === uploadedFiles[0].id);
+			if (first) {
+				previewFile(first);
+			}
+		}
 		setTimeout(() => {
 			uploadStatus = null;
 		}, 5000);
@@ -41,7 +49,10 @@
 	}
 
 	function previewFile(file: FileModel) {
-		selectedFile = file;
+		selectedFile = {
+			...file,
+			path: buildFileUrl(file)
+		};
 		if (file.type === 'image') {
 			previewMode = 'image';
 		} else if (file.type === 'pdf') {
@@ -104,6 +115,10 @@
 		if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
 		return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
 	}
+
+	function buildFileUrl(file: FileModel): string {
+		return `/api/files/${file.sessionId}/${file.category}/${file.id}_${file.name}`;
+	}
 </script>
 
 <div class="h-screen flex flex-col p-4 bg-base-200">
@@ -137,7 +152,10 @@
 								class="p-3 rounded border hover:bg-base-300 cursor-pointer transition"
 								class:bg-primary={selectedFile?.id === file.id}
 								class:text-primary-content={selectedFile?.id === file.id}
+								role="button"
+								tabindex="0"
 								onclick={() => previewFile(file)}
+								onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && previewFile(file)}
 							>
 								<div class="flex items-center justify-between">
 									<div class="flex-1 min-w-0">
@@ -149,7 +167,7 @@
 									<Button
 										size="sm"
 										variant="danger"
-										onclick={(e) => {
+										on:click={(e) => {
 											e.stopPropagation();
 											deleteFile(file);
 										}}
@@ -164,7 +182,7 @@
 
 				{#if files.length > 0}
 					<div class="mt-4">
-						<Button variant="danger" onclick={clearAll}>清空全部 / Clear All</Button>
+						<Button variant="danger" on:click={clearAll}>清空全部 / Clear All</Button>
 					</div>
 				{/if}
 			</Card>
@@ -193,7 +211,7 @@
 			{#if previewMode === 'image' && selectedFile}
 				<Card title={`图片预览: ${selectedFile.name}`}>
 					<div class="mb-2">
-						<Button size="sm" variant="ghost" onclick={closePreview}>← 返回列表</Button>
+						<Button size="sm" variant="ghost" on:click={closePreview}>← 返回列表</Button>
 					</div>
 					<div class="h-[calc(100vh-350px)]">
 						<ImagePreview
@@ -223,7 +241,7 @@
 			{#if previewMode === 'pdf' && selectedFile}
 				<Card title={`PDF预览: ${selectedFile.name}`}>
 					<div class="mb-2">
-						<Button size="sm" variant="ghost" onclick={closePreview}>← 返回列表</Button>
+						<Button size="sm" variant="ghost" on:click={closePreview}>← 返回列表</Button>
 					</div>
 					<div class="h-[calc(100vh-350px)]">
 						<PDFPreview fileUrl={selectedFile.path} fileName={selectedFile.name} />

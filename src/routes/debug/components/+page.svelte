@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { currentLanguage } from '$lib/stores/language';
+	import { themeStore, THEMES, type Theme } from '$lib/stores/theme';
 	import * as m from '$lib/paraglide/messages';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
@@ -9,6 +10,7 @@
 	import Progress from '$lib/components/ui/Progress.svelte';
 	import Notification from '$lib/components/ui/Notification.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
+	import { onMount } from 'svelte';
 
 	let inputValue = $state('');
 	let textareaValue = $state('');
@@ -16,20 +18,49 @@
 	let showModal = $state(false);
 	let progressValue = $state(65);
 
+	// Use theme from store
+	let selectedTheme = $state<Theme>($themeStore);
+
 	const dropdownOptions = [
 		{ value: 'option1', label: '选项 1 / Option 1' },
 		{ value: 'option2', label: '选项 2 / Option 2' },
 		{ value: 'option3', label: '选项 3 / Option 3' }
 	];
+
+	// Reactive effect to apply theme when selection changes
+	$effect(() => {
+		themeStore.setTheme(selectedTheme);
+	});
+
+	// Reactive i18n messages
+	let i18nMessages = $derived.by(() => {
+		$currentLanguage; // Trigger re-computation
+		return {
+			uploading: m.common_uploading(),
+			dragDrop: m.upload_drag_drop(),
+			selectFiles: m.upload_select_files(),
+			supportedFormats: m.upload_supported_formats()
+		};
+	});
 </script>
 
-<div class="container mx-auto p-8 max-w-7xl">
+<div class="container mx-auto p-8 max-w-7xl min-h-screen overflow-y-auto">
 	<div class="mb-8">
 		<h1 class="text-4xl font-bold mb-2">UI组件调试页面</h1>
 		<p class="text-gray-600">Component Debug Page - 测试所有UI组件的展示和交互</p>
-		<div class="flex gap-2 mt-4">
-			<Button size="sm" onclick={() => currentLanguage.set('zh-cn')}>中文</Button>
-			<Button size="sm" onclick={() => currentLanguage.set('en-us')}>English</Button>
+		<div class="flex gap-2 mt-4 items-center flex-wrap">
+			<!-- Language Switcher -->
+			<Button size="sm" on:click={() => currentLanguage.set('zh-cn')}>中文</Button>
+			<Button size="sm" on:click={() => currentLanguage.set('en-us')}>English</Button>
+			<span class="text-xs opacity-70 ml-2">当前语言 / Locale: {$currentLanguage}</span>
+
+			<!-- FlyonUI Theme Selector -->
+			<select class="select select-bordered select-sm ml-4" bind:value={selectedTheme}>
+				{#each THEMES as theme}
+					<option value={theme}>{theme}</option>
+				{/each}
+			</select>
+			<span class="text-xs opacity-70">主题 / Theme</span>
 		</div>
 	</div>
 
@@ -123,10 +154,11 @@
 	<Card title="Progress 进度条组件" collapsible={true}>
 		<div class="space-y-4">
 			<div>
-				<label class="label">
+				<label class="label" for="progressRange">
 					<span class="label-text">调整进度 / Adjust Progress: {progressValue}%</span>
 				</label>
 				<input
+					id="progressRange"
 					type="range"
 					min="0"
 					max="100"
@@ -154,7 +186,7 @@
 	<!-- 模态框组件 -->
 	<Card title="Modal 模态框组件" collapsible={true}>
 		<div class="space-y-4">
-			<Button onclick={() => (showModal = true)}>打开模态框 / Open Modal</Button>
+			<Button on:click={() => (showModal = true)}>打开模态框 / Open Modal</Button>
 
 			<Modal
 				bind:open={showModal}
@@ -165,8 +197,8 @@
 				<p class="mb-4">This is an example modal. You can put any content here.</p>
 
 				{#snippet actions()}
-					<Button variant="ghost" onclick={() => (showModal = false)}>取消 / Cancel</Button>
-					<Button variant="primary" onclick={() => (showModal = false)}>确认 / Confirm</Button>
+					<Button variant="ghost" on:click={() => (showModal = false)}>取消 / Cancel</Button>
+					<Button variant="primary" on:click={() => (showModal = false)}>确认 / Confirm</Button>
 				{/snippet}
 			</Modal>
 		</div>
@@ -190,10 +222,10 @@
 	<!-- 国际化测试 -->
 	<Card title="i18n 国际化测试">
 		<div class="space-y-2">
-			<p><strong>common_uploading:</strong> {m.common_uploading()}</p>
-			<p><strong>upload_drag_drop:</strong> {m.upload_drag_drop()}</p>
-			<p><strong>upload_select_files:</strong> {m.upload_select_files()}</p>
-			<p><strong>upload_supported_formats:</strong> {m.upload_supported_formats()}</p>
+			<p><strong>common_uploading:</strong> {i18nMessages.uploading}</p>
+			<p><strong>upload_drag_drop:</strong> {i18nMessages.dragDrop}</p>
+			<p><strong>upload_select_files:</strong> {i18nMessages.selectFiles}</p>
+			<p><strong>upload_supported_formats:</strong> {i18nMessages.supportedFormats}</p>
 		</div>
 	</Card>
 </div>

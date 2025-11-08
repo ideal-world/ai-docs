@@ -130,7 +130,7 @@
 	checkHealth();
 </script>
 
-<div class="container mx-auto p-8 max-w-7xl">
+<div class="container mx-auto p-8 max-w-7xl space-y-10 min-h-screen overflow-y-auto">
 	<div class="mb-8">
 		<h1 class="text-4xl font-bold mb-2">API端点测试</h1>
 		<p class="text-gray-600 mb-4">API Endpoint Testing - 测试所有API端点的功能</p>
@@ -141,9 +141,9 @@
 	</div>
 
 	<!-- 健康检查 -->
-	<Card title="系统健康检查 / System Health Check">
+	<Card title="系统健康检查 / System Health Check" collapsible={true}>
 		<div class="space-y-4">
-			<Button onclick={checkHealth} disabled={healthLoading}>
+			<Button on:click={checkHealth} disabled={healthLoading}>
 				{healthLoading ? '检查中... / Checking...' : '刷新 / Refresh'}
 			</Button>
 
@@ -222,7 +222,7 @@
 	</Card>
 
 	<!-- API测试工具 -->
-	<Card title="API测试工具 / API Testing Tool">
+	<Card title="API测试工具 / API Testing Tool" collapsible={true}>
 		<div class="space-y-4">
 			<!-- 预定义测试用例 -->
 			<div>
@@ -231,7 +231,7 @@
 				</label>
 				<div class="flex flex-wrap gap-2">
 					{#each testCases as testCase (testCase.name)}
-						<Button size="sm" variant="ghost" onclick={() => loadTestCase(testCase)}>
+						<Button size="sm" variant="ghost" on:click={() => loadTestCase(testCase)}>
 							{testCase.name}
 						</Button>
 					{/each}
@@ -263,7 +263,7 @@
 				/>
 			{/if}
 
-			<Button onclick={testApiEndpoint} disabled={apiLoading} variant="primary">
+			<Button on:click={testApiEndpoint} disabled={apiLoading} variant="primary">
 				{apiLoading ? '发送中... / Sending...' : '发送请求 / Send Request'}
 			</Button>
 
@@ -308,7 +308,7 @@
 	</Card>
 
 	<!-- API文档链接 -->
-	<Card title="API文档 / API Documentation">
+	<Card title="API文档 / API Documentation" collapsible={true}>
 		<div class="prose">
 			<p>完整的API文档请参考: <code>/docs/API.md</code></p>
 
@@ -337,3 +337,11 @@
 		</div>
 	</Card>
 </div>
+
+<style>
+	/* Ensure long content can scroll */
+	:global(body) {
+		height: 100vh;
+		overflow-y: auto;
+	}
+</style>

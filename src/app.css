@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'flyonui/themes.css';
 
 /* FlyonUI styles */
 @plugin 'flyonui';

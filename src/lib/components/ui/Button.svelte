@@ -1,13 +1,16 @@
 <script lang="ts">
+	import { createEventDispatcher } from 'svelte';
+
 	interface Props {
 		variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
 		size?: 'sm' | 'md' | 'lg';
 		disabled?: boolean;
 		loading?: boolean;
 		type?: 'button' | 'submit' | 'reset';
-		onclick?: (event: MouseEvent) => void;
 		children?: import('svelte').Snippet;
 	}
+
+	const dispatch = createEventDispatcher<{ click: MouseEvent }>();
 
 	let {
 		variant = 'primary',
@@ -15,7 +18,6 @@
 		disabled = false,
 		loading = false,
 		type = 'button',
-		onclick,
 		children
 	}: Props = $props();
 
@@ -25,22 +27,28 @@
 		danger: 'btn-error',
 		ghost: 'btn-ghost'
 	};
+
+	function handleClick(event: MouseEvent) {
+		dispatch('click', event);
+	}
 </script>
 
 <button
 	{type}
 	class="btn {variantClasses[variant]} {size === 'sm' ? 'btn-sm' : size === 'lg' ? 'btn-lg' : ''}"
 	disabled={disabled || loading}
-	{onclick}
+	onclick={handleClick}
 >
 	{#if loading}
 		<span class="loading loading-spinner"></span>
 	{/if}
-	{@render children?.()}
+	{#if children}
+		{@render children()}
+	{/if}
 </button>
 
 <style>
-	@reference "../../../app.css";
+	@reference '../../../app.css';
 
 	.btn {
 		@apply px-4 py-2 rounded font-medium transition-colors;

@@ -42,15 +42,27 @@ export async function POST({ request }: RequestEvent) {
 
 		const uploadedFiles: FileModel[] = [];
 		const tasks: Task[] = [];
+		let fileCount = 0;
+		let processedCount = 0;
 
-		// Parse multipart form data
-		const busboy = Busboy({ headers: Object.fromEntries(request.headers) });
+		// Parse multipart form data with UTF-8 encoding
+		const busboy = Busboy({ 
+			headers: Object.fromEntries(request.headers),
+			defParamCharset: 'utf8'
+		});
 		const nodeStream = Readable.from(await streamToAsyncIterator(request.body!));
 
-		await new Promise<void>((resolve, reject) => {
+		const waitForComplete = new Promise<void>((resolveAll) => {
+			const checkComplete = () => {
+				if (processedCount === fileCount && fileCount > 0) {
+					resolveAll();
+				}
+			};
+
 			busboy.on('file', async (fieldname, file, info) => {
 				const { filename, mimeType } = info;
 				const fileId = generateTraceId();
+				fileCount++;
 
 				try {
 					logger.logEvent(
@@ -79,7 +91,8 @@ export async function POST({ request }: RequestEvent) {
 							traceId
 						);
 						file.resume(); // Drain the stream
-						reject(new Error('INVALID_FILE_TYPE'));
+						processedCount++;
+						checkComplete();
 						return;
 					}
 
@@ -96,7 +109,8 @@ export async function POST({ request }: RequestEvent) {
 							traceId
 						);
 						file.resume(); // Drain the stream
-						reject(new Error('QUOTA_EXCEEDED'));
+						processedCount++;
+						checkComplete();
 						return;
 					}
 
@@ -121,7 +135,8 @@ export async function POST({ request }: RequestEvent) {
 								traceId
 							);
 							file.resume(); // Drain the stream
-							reject(new Error('FILE_TOO_LARGE'));
+							processedCount++;
+							checkComplete();
 							return;
 						}
 
@@ -223,6 +238,10 @@ export async function POST({ request }: RequestEvent) {
 							},
 							traceId
 						);
+						
+						// Mark this file as processed
+						processedCount++;
+						checkComplete();
 					});
 				} catch (error) {
 					logger.error(
@@ -234,21 +253,28 @@ export async function POST({ request }: RequestEvent) {
 						},
 						traceId
 					);
-					reject(error);
+					processedCount++;
+					checkComplete();
 				}
 			});
 
 			busboy.on('finish', () => {
-				resolve();
+				// If no files were uploaded
+				if (fileCount === 0) {
+					resolveAll();
+				}
 			});
 
 			busboy.on('error', (error) => {
 				logger.error('Busboy error', error as Error, { sessionId }, traceId);
-				reject(error);
+				resolveAll(); // Resolve anyway to prevent hanging
 			});
 
 			nodeStream.pipe(busboy);
 		});
+
+		// Wait for all files to be processed
+		await waitForComplete;
 
 		return json(
 			createSuccessResponse('upload.success', traceId, {

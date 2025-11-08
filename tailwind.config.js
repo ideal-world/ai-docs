@@ -1,3 +1,5 @@
+import flyonui from 'flyonui';
+
 /** @type {import('tailwindcss').Config} */
 export default {
 	content: ['./src/**/*.{html,js,svelte,ts}'],
@@ -12,5 +14,6 @@ export default {
 				'2xl': '1536px'
 			}
 		}
-	}
+	},
+	plugins: [flyonui]
 };

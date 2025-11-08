@@ -7,6 +7,17 @@ interface DocumentsState {
 	uploadProgress: Map<string, number>; // fileId -> progress (0-100)
 }
 
+function buildFileUrl(file: FileModel): string {
+	return `/api/files/${file.sessionId}/${file.category}/${file.id}_${file.name}`;
+}
+
+function normalizeFile(file: FileModel): FileModel {
+	return {
+		...file,
+		path: buildFileUrl(file)
+	};
+}
+
 function createDocumentsStore() {
 	const initialState: DocumentsState = {
 		files: [],
@@ -21,7 +32,7 @@ function createDocumentsStore() {
 		addFile: (file: FileModel) =>
 			update((state) => ({
 				...state,
-				files: [...state.files, file]
+				files: [...state.files, normalizeFile(file)]
 			})),
 		removeFile: (fileId: string) =>
 			update((state) => ({
@@ -32,7 +43,9 @@ function createDocumentsStore() {
 		updateFile: (fileId: string, updates: Partial<FileModel>) =>
 			update((state) => ({
 				...state,
-				files: state.files.map((f) => (f.id === fileId ? { ...f, ...updates } : f))
+				files: state.files.map((f) =>
+					f.id === fileId ? normalizeFile({ ...f, ...updates }) : f
+				)
 			})),
 		setCurrentPreview: (fileId: string | null) =>
 			update((state) => ({
