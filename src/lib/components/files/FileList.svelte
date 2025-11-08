@@ -89,7 +89,8 @@
 						<div class="file-list__meta">
 							<p class="file-list__name" title={file.name}>{file.name}</p>
 							<p class="file-list__details">
-								{(file.size / 1024).toFixed(1)} {labels.unit}
+								{(file.size / 1024).toFixed(1)}
+								{labels.unit}
 							</p>
 						</div>
 					</button>
@@ -156,7 +157,9 @@
 		padding: 0.75rem;
 		border-radius: 0.75rem;
 		border: 1px solid transparent;
-		transition: background-color 0.2s ease, border-color 0.2s ease;
+		transition:
+			background-color 0.2s ease,
+			border-color 0.2s ease;
 		background: oklch(var(--b1));
 		cursor: pointer;
 		text-align: left;

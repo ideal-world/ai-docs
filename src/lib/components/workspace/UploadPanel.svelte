@@ -56,7 +56,7 @@
 		/>
 	</div>
 
-	<FileList files={files} selectedId={currentFileId} onSelect={onSelect} />
+	<FileList {files} selectedId={currentFileId} {onSelect} />
 </section>
 
 <style>

@@ -71,7 +71,7 @@
 
 	<main class="workspace__main">
 		<UploadPanel
-			files={files}
+			{files}
 			currentFileId={currentFile?.id ?? null}
 			onSelect={handleFileSelect}
 			onUploadComplete={handleUploadComplete}
