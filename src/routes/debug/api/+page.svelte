@@ -129,7 +129,6 @@
 	// 初始化时检查健康状态
 	checkHealth();
 </script>
-
 <div class="container mx-auto p-8 max-w-7xl space-y-10 min-h-screen overflow-y-auto">
 	<div class="mb-8">
 		<h1 class="text-4xl font-bold mb-2">API端点测试</h1>
@@ -226,9 +225,9 @@
 		<div class="space-y-4">
 			<!-- 预定义测试用例 -->
 			<div>
-				<label class="label">
+				<div class="label">
 					<span class="label-text">快速测试 / Quick Tests:</span>
-				</label>
+				</div>
 				<div class="flex flex-wrap gap-2">
 					{#each testCases as testCase (testCase.name)}
 						<Button size="sm" variant="ghost" on:click={() => loadTestCase(testCase)}>
@@ -243,9 +242,9 @@
 					<Input bind:value={apiEndpoint} label="Endpoint" placeholder="/api/..." />
 				</div>
 				<div>
-					<label class="label">
+					<div class="label">
 						<span class="label-text">Method</span>
-					</label>
+					</div>
 					<select class="select select-bordered w-full" bind:value={apiMethod}>
 						<option value="GET">GET</option>
 						<option value="POST">POST</option>
@@ -337,11 +336,3 @@
 		</div>
 	</Card>
 </div>
-
-<style>
-	/* Ensure long content can scroll */
-	:global(body) {
-		height: 100vh;
-		overflow-y: auto;
-	}
-</style>

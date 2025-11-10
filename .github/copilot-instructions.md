@@ -2,8 +2,6 @@
 
 > 目标：让智能代理在首次接入本仓库时即可高效、合规、稳定地产出代码。严格遵守“中文优先”与“质量门禁”原则。
 
-## 0. English Summary (Concise)
-```
 AI Docs Collaboration Guide (Summary)
 Principles: Chinese-first i18n, unified API response (traceId), context-driven, test-first, SDK-friendly types.
 Patterns: Singleton services; streaming upload -> quota check -> async Office conversion; taskRegistry state machine; modelService centralizes OpenAI-compatible calls; structured JSON logging; directory schema /data/{sessionId}/{uploads|converted|results}/.
@@ -11,15 +9,30 @@ Quality Gates: pnpm check + lint + test all green; every visible string via i18n
 Logs: resource.action naming (upload.start, conversion.complete, model.failure, cleanup.run).
 Errors: UPPER_CASE codes; extend with MODEL_CALL_FAILED, TASK_TIMEOUT, WRITEBACK_FAILED, EXPORT_FAILED, DIFF_GENERATION_FAILED as needed.
 Clarification: Enumerate unknowns, ask targeted questions, use Context7 search before coding.
-```
 
-## 1. 核心理念
+## 0. 核心理念
 - 中文优先：所有新增/修改的用户可见文本 & 返回 message 必须使用 i18n key（`messages/zh-cn.json` / `messages/en-us.json`），英文仅作回退。
 - 统一返回结构：成功/失败统一格式 + `traceId`，使用 `createSuccessResponse` / `createErrorResponse`。
 - 上下文驱动：实现前先阅读 `README.md`、`specs/001-foundation-core/spec.md`、相关服务/路由现有实现，勿凭主观假设。
 - 测试先行：核心逻辑（存储/上传/模型适配/清理）需具备单测与边界用例；出现缺失时应补齐。
 - SDK 可用：新增能力的类型定义放在 `src/lib/types/`，接口形态便于未来 SDK 封装。
-- 易用性：界面设计要简洁直观、现代美观，确保用户操作流畅。关键字段要有tooltip或帮助说明。
+- 易用性：界面设计要现代美观、圆角扁平风格，确保用户操作流畅。关键字段要有tooltip或帮助说明。
+
+## 1. 技术约束
+
+**技术栈**: SvelteKit(Svelte 5) + FlyonUI + Tailwind CSS v4 + pnpm  
+**文档处理**: LibreOffice(Office→PDF 转换 + UNO headless 回写)，PDF需要先转成Markdown再处理(可能涉及OCR)，支持 “表格、表单、方程式、代码块、链接、引用”等提取。以Node技术栈优先，如果功能受限，可考虑其它技术栈
+**存储**: 无数据库,配置文件化,临时文件带 TTL  
+**模型类别**: ocr/translate/qa/optimize/review/extract(OpenAI 兼容)  
+**i18n**: zh-CN/en-US(页面/日志/返回值),英文回退  
+**返回格式**:
+
+- 成功: `{ success: true, data, locale, traceId }`
+- 失败: `{ success: false, error: { code, message, details }, locale, traceId }`
+
+**日志**: 结构化 JSON(timestamp/level/event/traceId/context/error.stack),禁止 console.log  
+**A11y**: 语义 HTML + ARIA 标签 + 键盘导航 + 响应式  
+**安全**: 文件类型白名单 + 大小限制 + 超时/重试 + 脱敏存储
 
 ## 2. 目录速览（关键聚焦）
 | 关注点 | 位置 |

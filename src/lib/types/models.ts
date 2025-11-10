@@ -5,7 +5,7 @@
 
 // File Types
 export type FileType = 'image' | 'pdf' | 'office';
-export type Category = 'uploads' | 'converted' | 'results';
+export type Category = 'uploads' | 'converted' | 'results' | 'attachments';
 
 // Task Types
 export type TaskType = 'convert' | 'ocr' | 'translate' | 'qa' | 'review' | 'extract' | 'writeback';
@@ -37,7 +37,14 @@ export interface File {
 	path: string;
 	category: Category;
 	createdAt: Date;
-	metadata?: ImageMetadata | PDFMetadata | OfficeMetadata;
+	/**
+	 * metadata 现扩展支持 role 标记，用于区分附件与主文档。
+	 * 为保持向后兼容，采用联合并附加可选 role 字段。
+	 */
+	metadata?: (ImageMetadata | PDFMetadata | OfficeMetadata) & {
+		/** 文件角色：attachment 表示附加文档；主文档不设置或为 undefined */
+		role?: 'attachment';
+	};
 }
 
 // Image Metadata

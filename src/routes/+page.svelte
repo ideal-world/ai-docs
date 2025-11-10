@@ -1,37 +1,27 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import LanguageSwitcher from '$lib/components/ui/LanguageSwitcher.svelte';
-	import UploadPanel from '$lib/components/workspace/UploadPanel.svelte';
-	import PreviewPanel from '$lib/components/workspace/PreviewPanel.svelte';
+	import SettingsModal from '$lib/components/ui/SettingsModal.svelte';
 	import Notification from '$lib/components/ui/Notification.svelte';
-	import { documentsStore, currentPreview } from '$lib/stores/documents';
+	import WorkspaceLayout from '$lib/components/workspace/WorkspaceLayout.svelte';
 	import { sessionStore } from '$lib/stores/session';
 	import { currentLanguage } from '$lib/stores/language';
 	import * as m from '$lib/paraglide/messages';
 
 	type NotificationKind = 'success' | 'error' | 'warning' | 'info';
-	type UploadedFileSummary = { id: string; name: string };
 
 	let notificationVisible = $state(false);
 	let notificationType: NotificationKind = $state('info');
 	let notificationMessage = $state('');
+	let settingsVisible = $state(false);
 
 	onMount(() => {
-		// Ensure a session exists before any upload happens.
 		sessionStore.init();
 	});
 
 	const headerTexts = $derived.by(() => {
 		$currentLanguage;
-		return {
-			title: m.welcome(),
-			subtitle: m.workspace_subtitle()
-		};
+		return { title: m.welcome(), subtitle: m.workspace_subtitle(), settingsOpen: m.settings_open() };
 	});
-
-	// Keep reactive views of stored files and the currently previewed item.
-	let files = $derived($documentsStore.files);
-	let currentFile = $derived($currentPreview);
 
 	function showNotification(type: NotificationKind, message: string) {
 		notificationType = type;
@@ -39,49 +29,40 @@
 		notificationVisible = true;
 	}
 
-	function handleUploadComplete(uploaded: UploadedFileSummary[]) {
-		showNotification('success', m.upload_success({ count: uploaded.length }));
-
-		if (uploaded.length > 0) {
-			documentsStore.setCurrentPreview(uploaded[0].id);
-		}
-	}
-
-	function handleUploadError(reason: string) {
-		showNotification('error', m.upload_failed({ reason }));
-	}
-
 	function handleNotificationClose() {
 		notificationVisible = false;
 	}
 
-	function handleFileSelect(id: string) {
-		documentsStore.setCurrentPreview(id);
+	function openSettings() {
+		settingsVisible = true;
 	}
 </script>
 
-<div class="workspace">
-	<header class="workspace__header">
-		<div>
-			<h1>{headerTexts.title}</h1>
-			<p>{headerTexts.subtitle}</p>
-		</div>
-		<LanguageSwitcher />
+
+<div class="flex h-screen flex-col gap-2 bg-base-200 px-3 pb-3 pt-2 sm:px-4">
+	<header class="flex items-center justify-between rounded-lg border border-base-content/15 bg-base-100 px-3 py-2 shadow-sm">
+		<h1 class="text-base font-semibold text-base-content">{headerTexts.title}</h1>
+		<button
+			type="button"
+			class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-base-content/15 bg-base-200 text-base-content/60 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-base-100 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 active:scale-95"
+			onclick={openSettings}
+			aria-label={headerTexts.settingsOpen}
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+				<circle cx="12" cy="12" r="3"/>
+			</svg>
+		</button>
 	</header>
 
-	<main class="workspace__main">
-		<UploadPanel
-			{files}
-			currentFileId={currentFile?.id ?? null}
-			onSelect={handleFileSelect}
-			onUploadComplete={handleUploadComplete}
-			onUploadError={handleUploadError}
-		/>
-		<PreviewPanel file={currentFile} />
+	<main class="flex flex-1 min-h-0 overflow-hidden rounded-xl border border-base-content/10 bg-base-100 shadow-lg">
+		<div class="flex h-full w-full flex-1 min-h-0">
+			<WorkspaceLayout />
+		</div>
 	</main>
 
 	{#if notificationVisible}
-		<div class="workspace__notification">
+		<div class="fixed right-6 top-20 z-[60]">
 			<Notification
 				type={notificationType}
 				message={notificationMessage}
@@ -91,55 +72,6 @@
 			/>
 		</div>
 	{/if}
+
+	<SettingsModal bind:visible={settingsVisible} />
 </div>
-
-<style>
-	.workspace {
-		display: flex;
-		flex-direction: column;
-		height: 100vh;
-		background: oklch(var(--b2));
-	}
-
-	.workspace__header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 1.25rem 2rem;
-		border-bottom: 1px solid oklch(var(--bc) / 0.08);
-		background: oklch(var(--b1));
-	}
-
-	.workspace__header h1 {
-		margin: 0;
-		font-size: 1.5rem;
-		font-weight: 600;
-	}
-
-	.workspace__header p {
-		margin: 0.35rem 0 0;
-		font-size: 0.95rem;
-		color: oklch(var(--bc) / 0.6);
-	}
-
-	.workspace__main {
-		flex: 1;
-		display: grid;
-		grid-template-columns: 320px 1fr;
-		min-height: 0;
-	}
-
-	@media (max-width: 900px) {
-		.workspace__main {
-			grid-template-columns: 1fr;
-			grid-template-rows: auto 1fr;
-		}
-	}
-
-	.workspace__notification {
-		position: fixed;
-		top: 5rem;
-		right: 1.5rem;
-		z-index: 60;
-	}
-</style>

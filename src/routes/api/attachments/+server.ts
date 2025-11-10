@@ -54,7 +54,8 @@ export async function POST({ request }: RequestEvent) {
 			},
 			limits: {
 				fileSize: MAX_FILE_SIZE
-			}
+			},
+			defParamCharset: 'utf8'
 		});
 
 		const processingPromises: Promise<void>[] = [];
@@ -123,10 +124,14 @@ export async function POST({ request }: RequestEvent) {
 						size: fileSize,
 						path: filePath,
 						category: 'uploads', // Mark as attachment in metadata if needed
-						createdAt: new Date()
-					};
-
-					// Register file in server-side registry
+						createdAt: new Date(),
+						metadata:
+							fileType === 'image'
+								? { width: 0, height: 0, format: 'png' as const, role: 'attachment' as const }
+								: fileType === 'pdf'
+									? { pages: 0, role: 'attachment' as const }
+									: { format: 'docx' as const, role: 'attachment' as const }
+					};					// Register file in server-side registry
 					fileRegistry.register(sessionId, fileRecord);
 
 					uploadedFiles.push(fileRecord);

@@ -2,6 +2,8 @@
 	import { browser } from '$app/environment';
 	import { onDestroy, tick } from 'svelte';
 	import { fade, scale } from 'svelte/transition';
+	import { currentLanguage } from '$lib/stores/language';
+	import * as m from '$lib/paraglide/messages';
 
 	type ModalSize = 'sm' | 'md' | 'lg' | 'xl';
 	type ModalPosition = 'top' | 'middle' | 'bottom';
@@ -19,16 +21,16 @@
 	}
 
 	const sizeClassMap = {
-		sm: 'modal-dialog-sm',
-		md: 'modal-dialog-md',
-		lg: 'modal-dialog-lg',
-		xl: 'modal-dialog-xl'
+		sm: 'max-w-sm',
+		md: 'max-w-lg',
+		lg: 'max-w-2xl',
+		xl: 'max-w-3xl'
 	} as const;
 
 	const positionClassMap = {
-		top: 'modal-top',
-		middle: 'modal-middle',
-		bottom: 'modal-bottom'
+		top: 'items-start pt-6',
+		middle: 'items-center',
+		bottom: 'items-end pb-6'
 	} as const;
 
 	let {
@@ -43,8 +45,8 @@
 		closeOnEscape = true
 	}: Props = $props();
 
-	let overlayEl: HTMLDivElement | null;
-	let dialogEl: HTMLDivElement | null;
+	let overlayEl = $state<HTMLDivElement | null>(null);
+	let dialogEl = $state<HTMLDivElement | null>(null);
 	let escapeListener: ((event: KeyboardEvent) => void) | null = null;
 	let previousBodyOverflow: string | null = null;
 
@@ -57,7 +59,12 @@
 
 	let dialogSizeClass = $derived.by(() => sizeClassMap[size] ?? sizeClassMap.md);
 	let modalPositionClass = $derived.by(() => positionClassMap[position] ?? positionClassMap.middle);
-	let modalContainerClasses = $derived.by(() => `modal ${modalPositionClass} is-open`);
+	const i18n = $derived.by(() => {
+		$currentLanguage;
+		return {
+			close: m.common_close()
+		};
+	});
 
 	function handleClose() {
 		if (!open) {
@@ -148,59 +155,56 @@
 </script>
 
 {#if open}
-	<div
-		class="overlay fixed inset-0 z-50 flex items-center justify-center bg-base-content/60 px-4 py-6 sm:px-6"
-		role="presentation"
-		aria-hidden={!open}
-		bind:this={overlayEl}
-		onclick={handleBackdropClick}
-		transition:fade={{ duration: 150 }}
-	>
-		<div class={modalContainerClasses} role="presentation">
-			<div
-				class={`modal-dialog ${dialogSizeClass} w-full max-w-xl pointer-events-auto`}
-				role="dialog"
-				aria-modal="true"
-				aria-labelledby={titleId}
-				tabindex="-1"
-				bind:this={dialogEl}
-				transition:scale={{ duration: 150 }}
-			>
-				<div class="modal-content bg-base-100 text-base-content shadow-xl">
-					{#if title}
-						<div class="modal-header flex items-center justify-between gap-3">
-							<h3 class="modal-title text-lg font-semibold" id={titleId}>{title}</h3>
+		<div
+			class={`fixed inset-0 z-50 flex justify-center bg-base-content/60 px-4 py-6 sm:px-6 ${modalPositionClass}`}
+			role="presentation"
+			aria-hidden={!open}
+			bind:this={overlayEl}
+			onclick={handleBackdropClick}
+			transition:fade={{ duration: 150 }}
+		>
+		<div
+			class={`pointer-events-auto w-full ${dialogSizeClass}`}
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby={titleId}
+			tabindex="-1"
+			bind:this={dialogEl}
+			transition:scale={{ duration: 150 }}
+		>
+			<div class="flex max-h-[85vh] flex-col overflow-hidden rounded-xl border border-base-content/10 bg-base-100 text-base-content shadow-xl">
+				{#if title}
+					<div class="flex items-center justify-between gap-3 border-b border-base-content/10 px-4 py-3">
+							<h3 class="text-lg font-semibold" id={titleId}>{title}</h3>
 							<button
 								type="button"
-								class="btn btn-sm btn-circle btn-ghost"
+								class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-base-content/60 transition-all duration-200 hover:bg-base-200/80 hover:text-base-content focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
 								onclick={handleClose}
-								aria-label="Close modal"
+								aria-label={i18n.close}
 							>
-								✕
-							</button>
-						</div>
+							✕
+						</button>
+					</div>
+				{/if}
+
+				<div class="flex-1 overflow-y-auto px-4 py-3 text-sm leading-relaxed text-base-content/80">
+					{@render children?.()}
+				</div>
+
+				<div class="flex items-center justify-end gap-2 border-t border-base-content/10 px-4 py-3">
+					{#if actions}
+						{@render actions()}
+					{:else}
+						<button
+							type="button"
+							onclick={handleClose}
+							class="inline-flex items-center justify-center rounded-lg border border-base-content/15 bg-base-200 px-3 py-2 text-sm font-medium text-base-content/80 transition-colors duration-200 hover:border-primary/60 hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+						>
+							{i18n.close}
+						</button>
 					{/if}
-
-					<div class="modal-body">
-						{@render children?.()}
-					</div>
-
-					<div class="modal-footer flex items-center justify-end gap-2">
-						{#if actions}
-							{@render actions()}
-						{:else}
-							<button type="button" class="btn" onclick={handleClose}>Close</button>
-						{/if}
-					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 {/if}
-
-<style>
-	.modal.is-open {
-		opacity: 1;
-		pointer-events: auto;
-	}
-</style>

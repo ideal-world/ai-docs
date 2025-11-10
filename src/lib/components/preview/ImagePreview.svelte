@@ -1,5 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
+	import { currentLanguage } from '$lib/stores/language';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		imageUrl: string;
@@ -9,12 +11,36 @@
 
 	let { imageUrl, fileName = 'image', alt = 'Image preview' }: Props = $props();
 
+	const labels = $derived.by(() => {
+		$currentLanguage;
+		return {
+			zoomOut: m.preview_zoom_out(),
+			zoomIn: m.preview_zoom_in(),
+			resetZoom: m.preview_reset_zoom(),
+			fitScreen: m.preview_fit_screen(),
+			canvas: m.preview_image_canvas()
+		};
+	});
+
+	const toolbarButtonClass =
+		'h-8 w-8 rounded-full border border-base-content/15 bg-base-100/90 text-base-content/70 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/10 hover:text-primary focus-visible:ring-primary/40 flex items-center justify-center';
+
+	const toolbarContainerBase =
+		'absolute inset-x-4 bottom-4 z-20 flex items-center justify-center transition-all duration-200';
+
+	const toolbarContainerHidden = 'pointer-events-none opacity-0 translate-y-2';
+	const toolbarContainerVisible = 'pointer-events-auto opacity-100 translate-y-0';
+
+	const toolbarInnerClass =
+		'flex items-center gap-2 rounded-full border border-base-content/15 bg-base-100/95 px-3 py-2 shadow-lg backdrop-blur-sm';
+
 	let scale = $state(1.0);
 	let offsetX = $state(0);
 	let offsetY = $state(0);
 	let isDragging = $state(false);
 	let startX = $state(0);
 	let startY = $state(0);
+	let showToolbar = $state(false);
 
 	function zoomIn() {
 		scale = Math.min(scale + 0.25, 5.0);
@@ -83,22 +109,66 @@
 			if (e.key === 'ArrowDown') offsetY += step;
 		}
 	}
+
+	function handleMouseEnter() {
+		showToolbar = true;
+	}
+
+	function handleMouseLeave() {
+		showToolbar = false;
+	}
+
+	function handleFocusIn() {
+		showToolbar = true;
+	}
+
+	function handleFocusOut(event: FocusEvent) {
+		const root = event.currentTarget as HTMLElement | null;
+		const next = event.relatedTarget as Node | null;
+		if (root && next && root.contains(next)) {
+			return;
+		}
+		showToolbar = false;
+	}
 </script>
 
 <svelte:window onmouseup={handleMouseUp} onmousemove={handleMouseMove} />
 
-<div class="image-preview">
-	<!-- Toolbar -->
-	<div class="toolbar">
-		<div class="toolbar-section">
-			<Button variant="secondary" size="sm" on:click={zoomOut} disabled={scale <= 0.25}>
-				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<div
+	class="group relative flex h-full min-h-0 overflow-hidden rounded-lg bg-base-200"
+	role="group"
+	aria-label={labels.canvas}
+	onmouseenter={handleMouseEnter}
+	onmouseleave={handleMouseLeave}
+	onfocusin={handleFocusIn}
+	onfocusout={handleFocusOut}
+>
+	<div class={`${toolbarContainerBase} ${showToolbar ? toolbarContainerVisible : toolbarContainerHidden}`}>
+		<div class={toolbarInnerClass}>
+			<Button
+				variant="ghost"
+				size="xs"
+				on:click={zoomOut}
+				disabled={scale <= 0.25}
+				class={toolbarButtonClass}
+				ariaLabel={labels.zoomOut}
+			>
+				<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="h-4 w-4">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
 				</svg>
 			</Button>
-			<span class="zoom-info">{Math.round(scale * 100)}%</span>
-			<Button variant="secondary" size="sm" on:click={zoomIn} disabled={scale >= 5.0}>
-				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<span class="rounded-full border border-base-content/15 bg-base-200/80 px-2 py-0.5 text-[0.7rem] font-semibold text-base-content/70">
+				{Math.round(scale * 100)}%
+			</span>
+			<Button
+				variant="ghost"
+				size="xs"
+				on:click={zoomIn}
+				disabled={scale >= 5.0}
+				class={toolbarButtonClass}
+				ariaLabel={labels.zoomIn}
+			>
+				<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="h-4 w-4">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -107,9 +177,14 @@
 					/>
 				</svg>
 			</Button>
-			<Button variant="secondary" size="sm" on:click={resetZoom}>100%</Button>
-			<Button variant="secondary" size="sm" on:click={fitToScreen}>
-				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<Button
+				variant="ghost"
+				size="xs"
+				on:click={fitToScreen}
+				class={toolbarButtonClass}
+				ariaLabel={labels.fitScreen}
+			>
+				<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="h-4 w-4">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -119,21 +194,17 @@
 				</svg>
 			</Button>
 		</div>
-
-		<div class="toolbar-section">
-			<span class="file-name">{fileName}</span>
-		</div>
 	</div>
 
 	<!-- Image Container -->
-	<!-- Interactive image wrapper using button for accessibility -->
 	<button
-		class="image-container"
-		class:dragging={isDragging}
+		class={`relative flex flex-1 select-none items-center justify-center overflow-hidden bg-base-200/80 p-5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+			isDragging ? 'cursor-grabbing' : scale > 1 ? 'cursor-grab' : 'cursor-default'
+		}`}
 		onmousedown={handleMouseDown}
 		onwheel={handleWheel}
 		type="button"
-		aria-label={alt}
+		aria-label={labels.canvas}
 		onkeydown={handleKeyDown}
 	>
 		<img
@@ -141,69 +212,7 @@
 			{alt}
 			style="transform: scale({scale}) translate({offsetX / scale}px, {offsetY /
 				scale}px); cursor: {scale > 1.0 ? (isDragging ? 'grabbing' : 'grab') : 'default'};"
+			class="max-h-full max-w-full select-none object-contain transition-transform duration-100 ease-out"
 		/>
 	</button>
 </div>
-
-<style>
-	.image-preview {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-		background: oklch(var(--b2));
-	}
-
-	.toolbar {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0.75rem 1rem;
-		background: oklch(var(--b1));
-		border-bottom: 1px solid oklch(var(--bc) / 0.1);
-		gap: 1rem;
-		flex-wrap: wrap;
-	}
-
-	.toolbar-section {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.zoom-info {
-		font-size: 0.875rem;
-		font-weight: 500;
-		min-width: 4rem;
-		text-align: center;
-	}
-
-	.file-name {
-		font-size: 0.875rem;
-		color: oklch(var(--bc) / 0.7);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		max-width: 300px;
-	}
-
-	.image-container {
-		flex: 1;
-		overflow: hidden;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		position: relative;
-		user-select: none;
-	}
-
-	.image-container.dragging {
-		cursor: grabbing;
-	}
-
-	img {
-		max-width: 100%;
-		max-height: 100%;
-		object-fit: contain;
-		transition: transform 0.1s ease-out;
-	}
-</style>

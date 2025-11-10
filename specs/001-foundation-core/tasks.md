@@ -235,25 +235,11 @@ Based on plan.md, this is a SvelteKit monorepo with:
 
 ### Implementation for User Story 7
 
-- [x] T108 [P] [US7] Complete all UI message keys in src/i18n/zh-CN.json (buttons, labels, placeholders, tooltips)
-- [x] T109 [P] [US7] Complete all UI message translations in src/i18n/en-US.json
-- [x] T110 [P] [US7] Add all error message keys in src/i18n/zh-CN.json (validation, upload, conversion, system errors)
-- [x] T111 [P] [US7] Add all error message translations in src/i18n/en-US.json
-- [x] T112 [P] [US7] Add success message keys in src/i18n/zh-CN.json (upload success, conversion success)
-- [x] T113 [P] [US7] Add success message translations in src/i18n/en-US.json
-- [x] T114 [US7] Implement server-side i18n resolver (parse Accept-Language, resolve message keys)
-- [x] T115 [US7] Update all API endpoints to use i18n messages (replace hardcoded strings with keys)
-- [x] T116 [US7] Update logger service to include i18n keys in log entries (alongside resolved messages)
-- [x] T117 [US7] Add missing translation detection in development mode (warn in console)
-- [x] T118 [US7] Test language persistence (localStorage, survives page refresh)
-- [x] T119 [US7] Test language switching updates all UI elements immediately
-- [x] T120 [US7] Verify all components use i18n keys (no hardcoded strings)
 
 **Checkpoint**: At this point, User Story 7 should be independently functional
 
----
 
-## Phase 10: User Story 8 - JS SDK 基础框架 (Priority: P3)
+-## Phase 10: User Story 8 - JS SDK 基础框架 (Priority: P3)
 
 **Goal**: Create npm package @idealworld/ai-docs-sdk with programmatic API access
 
@@ -261,27 +247,9 @@ Based on plan.md, this is a SvelteKit monorepo with:
 
 ### Implementation for User Story 8
 
-- [ ] T121 [US8] Create SDK package structure in packages/sdk/ (src/, tests/, package.json, tsconfig.json)
-- [ ] T122 [P] [US8] Initialize SDK package.json with name, version, main, types, dependencies
-- [ ] T123 [P] [US8] Configure SDK TypeScript in packages/sdk/tsconfig.json (ES modules, declaration files)
-- [ ] T124 [US8] Create SDK client class in packages/sdk/src/client.ts (constructor with baseUrl, apiKey, timeout)
-- [ ] T125 [P] [US8] Create SDK types in packages/sdk/src/types/index.ts (mirror server types)
-- [ ] T126 [US8] Implement upload API in packages/sdk/src/api/upload.ts (uploadMain, uploadAttachment methods)
-- [ ] T127 [P] [US8] Implement task API in packages/sdk/src/api/task.ts (getTask method)
-- [ ] T128 [P] [US8] Implement file API in packages/sdk/src/api/file.ts (getFile, deleteFile, downloadFile methods)
-- [ ] T129 [US8] Implement HTTP client wrapper in packages/sdk/src/utils/http.ts (fetch with timeout, error handling)
-- [ ] T130 [US8] Implement error handling in SDK (parse API errors, create custom error classes)
-- [ ] T131 [US8] Implement timeout handling in SDK (abort requests, throw timeout error)
-- [ ] T132 [US8] Add FormData support for file uploads (handle File/Blob in Node.js and browser)
-- [ ] T133 [US8] Export all public APIs in packages/sdk/src/index.ts
-- [ ] T134 [US8] Create SDK README with installation and usage examples in packages/sdk/README.md
-- [ ] T135 [US8] Build SDK with tsc and verify output in packages/sdk/dist/
-- [ ] T136 [US8] Test SDK in Node.js environment (write test script, verify uploads work)
-- [ ] T137 [US8] Test SDK in browser environment (create simple HTML page, test upload)
 
 **Checkpoint**: All user stories should now be independently functional
 
----
 
 ## Phase 11: Polish & Cross-Cutting Concerns
 

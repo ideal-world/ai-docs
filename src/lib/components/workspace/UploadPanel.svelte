@@ -42,13 +42,14 @@
 	}
 </script>
 
-<section class="upload-panel" aria-label={labels.title}>
-	<header class="upload-panel__header">
-		<h2 class="upload-panel__title">{labels.title}</h2>
-		<p class="upload-panel__subtitle">{labels.subtitle}</p>
+
+<section class="flex h-full flex-col gap-6 border-base-content/10 bg-base-100 p-7 border-b lg:border-b-0 lg:border-r" aria-label={labels.title}>
+	<header class="flex flex-col gap-2">
+		<h2 class="text-lg font-semibold text-base-content/90">{labels.title}</h2>
+		<p class="text-sm text-base-content/60">{labels.subtitle}</p>
 	</header>
 
-	<div class="upload-panel__uploader">
+	<div class="rounded-xl border border-dashed border-base-content/12 bg-base-100 p-5">
 		<Uploader
 			onUploadComplete={handleUploadComplete}
 			onUploadError={handleUploadError}
@@ -58,47 +59,3 @@
 
 	<FileList {files} selectedId={currentFileId} {onSelect} />
 </section>
-
-<style>
-	.upload-panel {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-		padding: 1.75rem;
-		border-right: 1px solid oklch(var(--bc) / 0.1);
-		background: oklch(var(--b1));
-		height: 100%;
-	}
-
-	.upload-panel__header {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.upload-panel__title {
-		font-size: 1.125rem;
-		font-weight: 600;
-		margin: 0;
-	}
-
-	.upload-panel__subtitle {
-		margin: 0;
-		font-size: 0.85rem;
-		color: oklch(var(--bc) / 0.6);
-	}
-
-	.upload-panel__uploader {
-		border-radius: 0.75rem;
-		background: oklch(var(--b1));
-		border: 1px dashed oklch(var(--bc) / 0.12);
-		padding: 1.25rem;
-	}
-
-	@media (max-width: 900px) {
-		.upload-panel {
-			border-right: none;
-			border-bottom: 1px solid oklch(var(--bc) / 0.08);
-		}
-	}
-</style>

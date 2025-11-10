@@ -1,5 +1,6 @@
 <script lang="ts">
 	interface Props {
+		id?: string;
 		value?: string;
 		placeholder?: string;
 		type?: 'text' | 'email' | 'password' | 'number';
@@ -10,6 +11,7 @@
 	}
 
 	let {
+		id,
 		value = $bindable(''),
 		placeholder,
 		type = 'text',
@@ -18,11 +20,14 @@
 		label,
 		required = false
 	}: Props = $props();
+
+	const generatedId = `input-${Math.random().toString(36).slice(2, 8)}`;
+	const inputId = $derived.by(() => id ?? generatedId);
 </script>
 
 <div class="form-control w-full">
 	{#if label}
-		<label class="label" for={label}>
+		<label class="label" for={inputId}>
 			<span class="label-text">
 				{label}
 				{#if required}<span class="text-error">*</span>{/if}
@@ -30,7 +35,7 @@
 		</label>
 	{/if}
 	<input
-		id={label}
+		id={inputId}
 		{type}
 		{placeholder}
 		{disabled}
@@ -39,9 +44,13 @@
 		class="input input-bordered w-full"
 		class:input-error={error}
 	/>
-	{#if error}
-		<label class="label">
-			<span class="label-text-alt text-error">{error}</span>
-		</label>
-	{/if}
+	<div class="label" aria-live="polite">
+		<span class={`label-text-alt ${error ? 'text-error' : 'text-base-content/60'}`}>
+			{#if error}
+				{error}
+			{:else}
+				&nbsp;
+			{/if}
+		</span>
+	</div>
 </div>

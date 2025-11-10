@@ -7,6 +7,13 @@
 		"speckit.implement": true
 	},
 	"chat.tools.terminal.autoApprove": {
+		"/.*/": true,
+	    "/^bash$/": {
+	      "approve": true,
+	      "matchCommandLine": true
+	    },
+		"bash": true,
+	    "pnpm": true,
 		".specify/scripts/bash/": true,
 		".specify/scripts/powershell/": true
 	}

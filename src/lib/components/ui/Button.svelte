@@ -3,10 +3,13 @@
 
 	interface Props {
 		variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
-		size?: 'sm' | 'md' | 'lg';
+		size?: 'xs' | 'sm' | 'md' | 'lg';
 		disabled?: boolean;
 		loading?: boolean;
 		type?: 'button' | 'submit' | 'reset';
+		class?: string;
+		ariaLabel?: string;
+		title?: string;
 		children?: import('svelte').Snippet;
 	}
 
@@ -18,6 +21,9 @@
 		disabled = false,
 		loading = false,
 		type = 'button',
+		class: extraClass = '',
+		ariaLabel = undefined,
+		title: titleAttr = undefined,
 		children
 	}: Props = $props();
 
@@ -26,7 +32,14 @@
 		secondary: 'btn-secondary',
 		danger: 'btn-error',
 		ghost: 'btn-ghost'
-	};
+	} satisfies Record<NonNullable<Props['variant']>, string>;
+
+	const sizeClasses = {
+		xs: 'h-8 px-2 text-xs',
+		sm: 'h-9 px-3 text-sm',
+		md: 'h-10 px-4 text-sm',
+		lg: 'h-11 px-5 text-base'
+	} satisfies Record<NonNullable<Props['size']>, string>;
 
 	function handleClick(event: MouseEvent) {
 		dispatch('click', event);
@@ -35,9 +48,11 @@
 
 <button
 	{type}
-	class="btn {variantClasses[variant]} {size === 'sm' ? 'btn-sm' : size === 'lg' ? 'btn-lg' : ''}"
+	class={`inline-flex items-center justify-center rounded-lg font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60 ${variantClasses[variant]} ${sizeClasses[size]} ${extraClass}`}
 	disabled={disabled || loading}
 	onclick={handleClick}
+	aria-label={ariaLabel}
+	title={titleAttr ?? ariaLabel}
 >
 	{#if loading}
 		<span class="loading loading-spinner"></span>
@@ -46,11 +61,3 @@
 		{@render children()}
 	{/if}
 </button>
-
-<style>
-	@reference '../../../app.css';
-
-	.btn {
-		@apply px-4 py-2 rounded font-medium transition-colors;
-	}
-</style>

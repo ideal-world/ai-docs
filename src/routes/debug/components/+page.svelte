@@ -43,7 +43,6 @@
 		};
 	});
 </script>
-
 <div class="container mx-auto p-8 max-w-7xl min-h-screen overflow-y-auto">
 	<div class="mb-8">
 		<h1 class="text-4xl font-bold mb-2">UI组件调试页面</h1>
@@ -229,9 +228,3 @@
 		</div>
 	</Card>
 </div>
-
-<style>
-	:global(body) {
-		background: oklch(var(--b2));
-	}
-</style>

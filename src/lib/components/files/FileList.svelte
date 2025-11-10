@@ -32,33 +32,36 @@
 	}
 </script>
 
-<div class="file-list">
-	<header class="file-list__header">
+<div class="flex flex-col gap-4">
+	<header class="flex flex-wrap items-start justify-between gap-3">
 		<div>
-			<h3 class="file-list__title">{labels.heading}</h3>
-			<p class="file-list__hint">{labels.hint}</p>
+			<h3 class="m-0 text-base font-semibold text-base-content/90">{labels.heading}</h3>
+			<p class="mt-1 text-xs text-base-content/60">{labels.hint}</p>
 		</div>
 		{#if files.length > 0}
-			<span class="file-list__count">{m.file_list_count({ count: files.length })}</span>
+			<span class="text-xs text-base-content/60">{m.file_list_count({ count: files.length })}</span>
 		{/if}
 	</header>
 
 	{#if files.length === 0}
-		<p class="file-list__empty">{labels.empty}</p>
+		<p class="rounded-xl border border-dashed border-base-content/20 p-6 text-center text-sm text-base-content/60">{labels.empty}</p>
 	{:else}
-		<ul class="file-list__items">
+		<ul class="flex flex-col gap-2">
 			{#each files as file (file.id)}
 				<li>
 					<button
 						type="button"
 						onclick={() => onSelect?.(file.id)}
-						class="file-list__item"
-						class:file-list__item--active={selectedId === file.id}
+						class={`flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${selectedId === file.id ? 'border-primary bg-primary/15 text-primary' : 'border-transparent bg-base-100 text-base-content/80 hover:border-base-content/10 hover:bg-base-100/90'}`}
 						aria-current={selectedId === file.id ? 'true' : 'false'}
 					>
-						<span class="file-list__icon" data-type={fileIcon(file.type)} aria-hidden="true">
+						<span
+							class={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-200 ${selectedId === file.id ? 'bg-primary/15 text-primary' : 'bg-base-content/10 text-base-content/70'}`}
+							data-type={fileIcon(file.type)}
+							aria-hidden="true"
+						>
 							{#if fileIcon(file.type) === 'image'}
-								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+								<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -67,7 +70,7 @@
 									/>
 								</svg>
 							{:else if fileIcon(file.type) === 'pdf'}
-								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+								<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -76,7 +79,7 @@
 									/>
 								</svg>
 							{:else}
-								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+								<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -86,9 +89,9 @@
 								</svg>
 							{/if}
 						</span>
-						<div class="file-list__meta">
-							<p class="file-list__name" title={file.name}>{file.name}</p>
-							<p class="file-list__details">
+						<div class="min-w-0 flex-1">
+							<p class="truncate text-sm font-medium text-base-content/90" title={file.name}>{file.name}</p>
+							<p class="mt-1 text-xs text-base-content/60">
 								{(file.size / 1024).toFixed(1)}
 								{labels.unit}
 							</p>
@@ -99,120 +102,3 @@
 		</ul>
 	{/if}
 </div>
-
-<style>
-	.file-list {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.file-list__header {
-		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		gap: 0.75rem;
-	}
-
-	.file-list__title {
-		font-size: 1rem;
-		font-weight: 600;
-		margin: 0;
-	}
-
-	.file-list__hint {
-		margin: 0.25rem 0 0;
-		font-size: 0.8125rem;
-		color: oklch(var(--bc) / 0.6);
-	}
-
-	.file-list__count {
-		font-size: 0.8125rem;
-		color: oklch(var(--bc) / 0.6);
-	}
-
-	.file-list__empty {
-		padding: 1.5rem;
-		text-align: center;
-		border: 1px dashed oklch(var(--bc) / 0.2);
-		border-radius: 0.75rem;
-		color: oklch(var(--bc) / 0.6);
-		font-size: 0.875rem;
-	}
-
-	.file-list__items {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.file-list__item {
-		width: 100%;
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 0.75rem;
-		border-radius: 0.75rem;
-		border: 1px solid transparent;
-		transition:
-			background-color 0.2s ease,
-			border-color 0.2s ease;
-		background: oklch(var(--b1));
-		cursor: pointer;
-		text-align: left;
-	}
-
-	.file-list__item:hover {
-		background: oklch(var(--b1) / 0.9);
-		border-color: oklch(var(--bc) / 0.1);
-	}
-
-	.file-list__item--active {
-		border-color: oklch(var(--p));
-		background: oklch(var(--p) / 0.14);
-	}
-
-	.file-list__icon {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		border-radius: 0.5rem;
-		color: oklch(var(--bc) / 0.7);
-		background: oklch(var(--bc) / 0.08);
-	}
-
-	.file-list__icon svg {
-		width: 1.25rem;
-		height: 1.25rem;
-	}
-
-	.file-list__item--active .file-list__icon {
-		color: oklch(var(--p));
-		background: oklch(var(--p) / 0.16);
-	}
-
-	.file-list__meta {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.file-list__name {
-		margin: 0;
-		font-size: 0.95rem;
-		font-weight: 500;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.file-list__details {
-		margin: 0.125rem 0 0;
-		font-size: 0.75rem;
-		color: oklch(var(--bc) / 0.6);
-	}
-</style>

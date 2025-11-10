@@ -79,12 +79,10 @@
 
 <div
 	bind:this={containerRef}
-	class="resizable-panel-container"
-	class:horizontal={orientation === 'horizontal'}
-	class:vertical={orientation === 'vertical'}
+	class={`relative flex h-full w-full ${orientation === 'horizontal' ? 'flex-row' : 'flex-col'}`}
 >
 	<div
-		class="resizable-panel"
+		class="overflow-auto"
 		id={panelId}
 		style={orientation === 'horizontal' ? `width: ${size}%` : `height: ${size}%`}
 	>
@@ -99,59 +97,16 @@
 			aria-valuemax={maxSize}
 			aria-orientation={orientation}
 			aria-controls={panelId}
-			class="resizer"
-			class:horizontal={orientation === 'horizontal'}
-			class:vertical={orientation === 'vertical'}
-			class:dragging={isDragging}
+			class={`${orientation === 'horizontal'
+				? 'w-2 cursor-col-resize border-x border-dashed'
+				: 'h-2 cursor-row-resize border-y border-dashed'} relative flex shrink-0 items-center justify-center overflow-hidden border-primary/40 bg-base-200 transition-colors duration-200 focus:outline-none touch-none ${isDragging ? 'bg-primary/15 ring-2 ring-primary/30' : 'hover:bg-primary/10 focus-visible:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary/30'}`}
 			onmousedown={handleMouseDown}
 			onkeydown={handleKeyDown}
 			aria-label={orientation === 'horizontal'
 				? 'Resize panel horizontally'
 				: 'Resize panel vertically'}
-		></div>
+		>
+			<span class={`${orientation === 'horizontal' ? 'h-8 w-0.5' : 'w-8 h-0.5'} rounded-full bg-base-content/40`}></span>
+		</div>
 	{/if}
 </div>
-
-<style>
-	.resizable-panel-container {
-		position: relative;
-		display: flex;
-		width: 100%;
-		height: 100%;
-	}
-
-	.resizable-panel-container.horizontal {
-		flex-direction: row;
-	}
-
-	.resizable-panel-container.vertical {
-		flex-direction: column;
-	}
-
-	.resizable-panel {
-		overflow: auto;
-	}
-
-	.resizer {
-		background: oklch(var(--b3));
-		cursor: col-resize;
-		user-select: none;
-	}
-
-	.resizer.horizontal {
-		width: 4px;
-		height: 100%;
-		cursor: col-resize;
-	}
-
-	.resizer.vertical {
-		height: 4px;
-		width: 100%;
-		cursor: row-resize;
-	}
-
-	.resizer:hover,
-	.resizer.dragging {
-		background: oklch(var(--p));
-	}
-</style>

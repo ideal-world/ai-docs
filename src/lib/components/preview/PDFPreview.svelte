@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import { currentLanguage } from '$lib/stores/language';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		fileUrl: string;
@@ -8,6 +10,18 @@
 	}
 
 	let { fileUrl, fileName = 'document.pdf' }: Props = $props();
+
+	const labels = $derived.by(() => {
+		$currentLanguage;
+		return {
+			zoomOut: m.preview_zoom_out(),
+			zoomIn: m.preview_zoom_in(),
+			fitScreen: m.preview_fit_screen(),
+			prevPage: m.preview_prev_page(),
+			nextPage: m.preview_next_page(),
+			canvas: m.preview_pdf_canvas()
+		};
+	});
 
 	let canvasRef: HTMLCanvasElement;
 	let pageNum = $state(1);
@@ -22,12 +36,25 @@
 		promise: Promise<PdfDocLite>;
 		destroy?: () => void;
 	}
+	const toolbarButtonClass =
+		'h-8 w-8 rounded-full border border-base-content/15 bg-base-100/90 text-base-content/70 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/10 hover:text-primary focus-visible:ring-primary/40 flex items-center justify-center';
+
+	const toolbarContainerBase =
+		'absolute inset-x-4 bottom-4 z-20 flex items-center justify-center transition-all duration-200';
+
+	const toolbarContainerHidden = 'pointer-events-none opacity-0 translate-y-2';
+	const toolbarContainerVisible = 'pointer-events-auto opacity-100 translate-y-0';
+
+	const toolbarInnerClass =
+		'flex flex-wrap items-center gap-3 rounded-full border border-base-content/15 bg-base-100/95 px-3 py-2 text-[0.7rem] text-base-content/70 shadow-lg backdrop-blur-sm';
+
 	let pdfDoc: PdfDocLite | null = $state(null);
 	let pdfjsLib: typeof import('pdfjs-dist') | null = $state(null);
 	let pageRendering = $state(false);
 	let currentLoadingTask: LoadingTask | null = null;
 	let currentLoadToken = 0;
 	let lastLoadedUrl: string | null = null;
+	let showToolbar = $state(false);
 
 	onMount(async () => {
 		// Dynamically import pdfjs to avoid bloating initial bundle
@@ -127,9 +154,30 @@
 		renderPage(pageNum);
 	}
 
-	function resetZoom() {
+	function fitToScreen() {
 		scale = 1.0;
 		renderPage(pageNum);
+	}
+
+	function handleMouseEnter() {
+		showToolbar = true;
+	}
+
+	function handleMouseLeave() {
+		showToolbar = false;
+	}
+
+	function handleFocusIn() {
+		showToolbar = true;
+	}
+
+	function handleFocusOut(event: FocusEvent) {
+		const root = event.currentTarget as HTMLElement | null;
+		const next = event.relatedTarget as Node | null;
+		if (root && next && root.contains(next)) {
+			return;
+		}
+		showToolbar = false;
 	}
 
 	$effect(() => {
@@ -150,116 +198,105 @@
 	});
 </script>
 
-<div class="pdf-preview">
-	<!-- Toolbar -->
-	<div class="toolbar">
-		<div class="toolbar-section">
-			<Button variant="secondary" size="sm" on:click={previousPage} disabled={pageNum <= 1}>
-				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M15 19l-7-7 7-7"
-					/>
-				</svg>
-			</Button>
-			<span class="page-info">
-				{pageNum} / {pageCount}
-			</span>
-			<Button variant="secondary" size="sm" on:click={nextPage} disabled={pageNum >= pageCount}>
-				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-				</svg>
-			</Button>
-		</div>
-
-		<div class="toolbar-section">
-			<Button variant="secondary" size="sm" on:click={zoomOut} disabled={scale <= 0.5}>
-				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-				</svg>
-			</Button>
-			<span class="zoom-info">{Math.round(scale * 100)}%</span>
-			<Button variant="secondary" size="sm" on:click={zoomIn} disabled={scale >= 3.0}>
-				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 4v16m8-8H4"
-					/>
-				</svg>
-			</Button>
-			<Button variant="secondary" size="sm" on:click={resetZoom}>100%</Button>
-		</div>
-
-		<div class="toolbar-section">
-			<span class="file-name">{fileName}</span>
+<div
+	class="group relative flex h-full min-h-0 overflow-hidden rounded-lg bg-base-200"
+	role="group"
+	aria-label={labels.canvas}
+	onmouseenter={handleMouseEnter}
+	onmouseleave={handleMouseLeave}
+	onfocusin={handleFocusIn}
+	onfocusout={handleFocusOut}
+>
+	<div class={`${toolbarContainerBase} ${showToolbar ? toolbarContainerVisible : toolbarContainerHidden}`}>
+		<div class={toolbarInnerClass}>
+			<div class="flex items-center gap-2">
+				<Button
+					variant="ghost"
+					size="xs"
+					on:click={previousPage}
+					disabled={pageNum <= 1}
+					class={toolbarButtonClass}
+					ariaLabel={labels.prevPage}
+				>
+					<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="h-4 w-4">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M15 19l-7-7 7-7"
+						/>
+					</svg>
+				</Button>
+				<span class="rounded-full border border-base-content/15 bg-base-200/80 px-2 py-0.5 text-[0.7rem] font-semibold text-base-content/70">
+					{pageNum} / {pageCount || 1}
+				</span>
+				<Button
+					variant="ghost"
+					size="xs"
+					on:click={nextPage}
+					disabled={pageNum >= pageCount}
+					class={toolbarButtonClass}
+					ariaLabel={labels.nextPage}
+				>
+					<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="h-4 w-4">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+					</svg>
+				</Button>
+			</div>
+			<div class="flex items-center gap-2">
+				<Button
+					variant="ghost"
+					size="xs"
+					on:click={zoomOut}
+					disabled={scale <= 0.5}
+					class={toolbarButtonClass}
+					ariaLabel={labels.zoomOut}
+				>
+					<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="h-4 w-4">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+					</svg>
+				</Button>
+				<span class="min-w-[3.2rem] rounded-full border border-base-content/15 bg-base-200/80 px-2 py-0.5 text-[0.7rem] font-semibold text-base-content/70 text-center">
+					{Math.round(scale * 100)}%
+				</span>
+				<Button
+					variant="ghost"
+					size="xs"
+					on:click={zoomIn}
+					disabled={scale >= 3.0}
+					class={toolbarButtonClass}
+					ariaLabel={labels.zoomIn}
+				>
+					<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="h-4 w-4">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M12 4v16m8-8H4"
+						/>
+					</svg>
+				</Button>
+				<Button
+					variant="ghost"
+					size="xs"
+					on:click={fitToScreen}
+					class={toolbarButtonClass}
+					ariaLabel={labels.fitScreen}
+				>
+					<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="h-4 w-4">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+						/>
+					</svg>
+				</Button>
+			</div>
 		</div>
 	</div>
 
-	<!-- Canvas -->
-	<div class="canvas-container">
-		<canvas bind:this={canvasRef}></canvas>
+	<div class="flex flex-1 items-center justify-center overflow-auto bg-base-200/80 p-6">
+		<canvas bind:this={canvasRef} class="rounded-md bg-base-100 shadow-xl" aria-label={labels.canvas}></canvas>
 	</div>
 </div>
-
-<style>
-	.pdf-preview {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-		background: oklch(var(--b2));
-	}
-
-	.toolbar {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0.75rem 1rem;
-		background: oklch(var(--b1));
-		border-bottom: 1px solid oklch(var(--bc) / 0.1);
-		gap: 1rem;
-		flex-wrap: wrap;
-	}
-
-	.toolbar-section {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.page-info,
-	.zoom-info {
-		font-size: 0.875rem;
-		font-weight: 500;
-		min-width: 4rem;
-		text-align: center;
-	}
-
-	.file-name {
-		font-size: 0.875rem;
-		color: oklch(var(--bc) / 0.7);
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		max-width: 300px;
-	}
-
-	.canvas-container {
-		flex: 1;
-		overflow: auto;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 2rem;
-	}
-
-	canvas {
-		box-shadow:
-			0 4px 6px -1px rgb(0 0 0 / 0.1),
-			0 2px 4px -2px rgb(0 0 0 / 0.1);
-		background: white;
-	}
-</style>

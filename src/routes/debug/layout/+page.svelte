@@ -9,7 +9,6 @@
 		orientation = orientation === 'horizontal' ? 'vertical' : 'horizontal';
 	}
 </script>
-
 <div class="h-screen flex flex-col p-4 bg-base-200">
 	<div class="mb-4">
 		<h1 class="text-4xl font-bold mb-2">布局组件调试页面</h1>
@@ -87,9 +86,3 @@
 		</SplitPane>
 	</div>
 </div>
-
-<style>
-	:global(body) {
-		overflow: hidden;
-	}
-</style>
