@@ -121,7 +121,7 @@ function formatSize(bytes: number) {
 </script>
 
 <section class="flex h-full flex-col overflow-hidden rounded-lg border border-base-content/12 bg-base-100">
-	<header class="flex items-center justify-between gap-2 border-b border-base-content/10 px-3 py-2">
+	<header class="flex items-center justify-between gap-2 border-b border-base-content/10 px-3">
 		<h3 class="text-sm font-semibold text-base-content/90">{m.attachments_title()}</h3>
 		<div class="group relative inline-flex">
 			<Button

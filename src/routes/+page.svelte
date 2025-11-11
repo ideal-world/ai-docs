@@ -39,12 +39,12 @@
 </script>
 
 
-<div class="flex h-screen flex-col gap-2 bg-base-200 px-3 pb-3 pt-2 sm:px-4">
-	<header class="flex items-center justify-between rounded-lg border border-base-content/15 bg-base-100 px-3 py-2 shadow-sm">
+<div class="flex h-screen flex-col gap-2 bg-base-200 px-2 pb-2 pt-2 sm:px-4">
+	<header class="flex items-center justify-between rounded-lg bg-base-100 px-3 py-2 shadow-sm">
 		<h1 class="text-base font-semibold text-base-content">{headerTexts.title}</h1>
 		<button
 			type="button"
-			class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-base-content/15 bg-base-200 text-base-content/60 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-base-100 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 active:scale-95"
+			class="inline-flex items-center justify-center rounded-lg bg-base-200 text-base-content/60 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-base-100 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 active:scale-95"
 			onclick={openSettings}
 			aria-label={headerTexts.settingsOpen}
 		>
@@ -55,14 +55,14 @@
 		</button>
 	</header>
 
-	<main class="flex flex-1 min-h-0 overflow-hidden rounded-xl border border-base-content/10 bg-base-100 shadow-lg">
+	<main class="flex flex-1 min-h-0 overflow-hidden rounded-xl bg-base-100 shadow-lg">
 		<div class="flex h-full w-full flex-1 min-h-0">
 			<WorkspaceLayout />
 		</div>
 	</main>
 
 	{#if notificationVisible}
-		<div class="fixed right-6 top-20 z-[60]">
+		<div class="fixed right-6 top-20 z-60">
 			<Notification
 				type={notificationType}
 				message={notificationMessage}

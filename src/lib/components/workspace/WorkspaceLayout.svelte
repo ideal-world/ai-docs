@@ -3,9 +3,7 @@
 	import PreviewPanel from '$lib/components/workspace/PreviewPanel.svelte';
 	import AttachmentPanel from '$lib/components/workspace/AttachmentPanel.svelte';
 	import OperationPanel from '$lib/components/workspace/OperationPanel.svelte';
-	import { currentPreview, mainPreview } from '$lib/stores/documents';
-
-	// 布局：左（上预览+下附件） + 右操作区
+	import { currentPreview } from '$lib/stores/documents';
 </script>
 
 <SplitPane orientation="horizontal" initialLeftSize={58} minLeftSize={30} maxLeftSize={80}>

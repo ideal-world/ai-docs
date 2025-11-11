@@ -62,7 +62,7 @@
 </script>
 
 <section class="flex h-full flex-col rounded-lg border border-base-content/12 bg-base-100">
-	<div class="flex items-center justify-between gap-2 border-b border-base-content/10 px-3 py-2">
+	<div class="flex items-center justify-between gap-2 border-b border-base-content/10">
 		<div class="flex min-w-0 flex-1 items-center gap-3">
 			<div class="group relative inline-flex">
 				<Button
@@ -109,7 +109,7 @@
 	</div>
 
 	{#if showUploadPanel}
-		<div class="border-b border-base-content/10 px-3 py-3">
+		<div class="px-3 py-3">
 			<Uploader maxFiles={1} onUploadComplete={handleMainUploadComplete} />
 		</div>
 	{/if}

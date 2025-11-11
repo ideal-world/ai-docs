@@ -88,7 +88,7 @@
 
 </script>
 
-<section class="flex h-full flex-col gap-4 rounded-lg border border-base-content/15 bg-base-100 p-4 shadow-sm">
+<section class="flex h-full flex-col gap-4 rounded-lg bg-base-100 p-4 shadow-sm">
 	<header>
 		<div class="flex flex-wrap gap-2.5">
 			{#each modes as mode}

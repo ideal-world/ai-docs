@@ -105,10 +105,10 @@
 
 {#if isMobile}
 	<div class={`flex h-full w-full flex-col overflow-y-auto ${externalClass}`}>
-		<div class="min-h-[50vh] flex-1 overflow-auto border-b border-base-content/10 bg-base-100">
+		<div class="min-h-[50vh] flex-1 overflow-auto bg-base-100">
 			{@render leftPanel?.()}
 		</div>
-		<div class="min-h-[50vh] flex-1 overflow-auto border-t border-base-content/10 bg-base-100">
+		<div class="min-h-[50vh] flex-1 overflow-auto bg-base-100">
 			{@render rightPanel?.()}
 		</div>
 	</div>
@@ -118,7 +118,7 @@
 		class={`flex h-full w-full overflow-hidden ${orientation === 'horizontal' ? 'flex-row' : 'flex-col'} ${externalClass}`}
 	>
 		<div
-			class={`flex min-h-0 min-w-0 flex-col overflow-hidden bg-base-100 shadow-sm border border-base-content/15 ${orientation === 'horizontal' ? 'rounded-l-md rounded-r-none' : 'rounded-t-md rounded-b-none'}`}
+			class={`flex min-h-0 min-w-0 flex-col overflow-hidden bg-base-100 shadow-sm ${orientation === 'horizontal' ? 'rounded-l-md rounded-r-none' : 'rounded-t-md rounded-b-none'}`}
 			style={orientation === 'horizontal'
 				? `flex: 0 0 ${primarySize}%; width: ${primarySize}%;`
 				: `flex: 0 0 ${primarySize}%; height: ${primarySize}%;`}
@@ -131,8 +131,8 @@
 			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 			<div
 				class={`${orientation === 'horizontal'
-					? 'w-2 cursor-col-resize border-x border-dashed'
-					: 'h-2 cursor-row-resize border-y border-dashed'} relative flex shrink-0 items-center justify-center overflow-hidden border-primary/40 bg-base-200 transition-colors duration-200 focus:outline-none touch-none ${isDragging ? 'bg-primary/15 ring-2 ring-primary/30' : 'hover:bg-primary/10 focus-visible:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary/30'}`}
+					? 'w-2 cursor-col-resize'
+					: 'h-2 cursor-row-resize'} relative flex shrink-0 items-center justify-center overflow-hidden bg-base-200 transition-colors duration-200 focus:outline-none touch-none ${isDragging ? 'bg-primary/15 ring-2 ring-primary/30' : 'hover:bg-primary/10 focus-visible:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary/30'}`}
 				role="separator"
 				tabindex="0"
 				aria-orientation={orientation}
@@ -147,7 +147,7 @@
 		{/if}
 
 		<div
-			class={`flex flex-1 flex-col overflow-hidden bg-base-100 shadow-sm border border-base-content/15 ${orientation === 'horizontal' ? 'rounded-r-md rounded-l-none' : 'rounded-b-md rounded-t-none'}`}
+			class={`flex flex-1 flex-col overflow-hidden bg-base-100 shadow-sm ${orientation === 'horizontal' ? 'rounded-r-md rounded-l-none' : 'rounded-b-md rounded-t-none'}`}
 		>
 			{@render rightPanel?.()}
 		</div>
