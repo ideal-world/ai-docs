@@ -14,8 +14,11 @@ function buildFileUrl(file: FileModel): string {
 }
 
 function normalizeFile(file: FileModel): FileModel {
+	const createdAt = file.createdAt instanceof Date ? file.createdAt : new Date(file.createdAt);
+
 	return {
 		...file,
+		createdAt,
 		path: buildFileUrl(file)
 	};
 }
@@ -33,10 +36,19 @@ function createDocumentsStore() {
 	return {
 		subscribe,
 		addFile: (file: FileModel) =>
-			update((state) => ({
-				...state,
-				files: [...state.files, normalizeFile(file)]
-			})),
+			update((state) => {
+				const normalized = normalizeFile(file);
+				const existingIndex = state.files.findIndex((f) => f.id === normalized.id);
+				if (existingIndex >= 0) {
+					const nextFiles = [...state.files];
+					nextFiles[existingIndex] = normalized;
+					return { ...state, files: nextFiles };
+				}
+				return {
+					...state,
+					files: [...state.files, normalized]
+				};
+			}),
 		removeFile: (fileId: string) =>
 			update((state) => ({
 				...state,
@@ -122,3 +134,16 @@ export const convertedFiles = derived(documentsStore, ($docs) =>
 export const resultFiles = derived(documentsStore, ($docs) =>
 	$docs.files.filter((f) => f.category === 'results')
 );
+
+export const latestMarkdownFile = derived(documentsStore, ($docs) => {
+	const markdownFiles = $docs.files.filter((f) => f.category === 'results' && f.type === 'text');
+	if (markdownFiles.length === 0) {
+		return null;
+	}
+
+	return markdownFiles.reduce((latest, current) => {
+		const latestTime = latest.createdAt instanceof Date ? latest.createdAt.getTime() : new Date(latest.createdAt).getTime();
+		const currentTime = current.createdAt instanceof Date ? current.createdAt.getTime() : new Date(current.createdAt).getTime();
+		return currentTime > latestTime ? current : latest;
+	}, markdownFiles[0]);
+});

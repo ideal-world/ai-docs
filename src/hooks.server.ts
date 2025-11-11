@@ -4,20 +4,103 @@ import { paraglideMiddleware } from '$lib/paraglide/server';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '$lib/services/logger.service';
 import { cleanupService } from '$lib/services/cleanup.service';
+import { environmentService, EnvironmentSetupError } from '$lib/services/environment.service';
 
-// T107: Initialize cleanup scheduler on server startup
-cleanupService.start();
+const startupTraceId = uuidv4();
+let cleanupStarted = false;
+
+await (async () => {
+	try {
+		const status = await environmentService.ensureEnvironment(startupTraceId, {
+			force: true,
+			abortOnFailure: true
+		});
+
+		if (status.ready) {
+			logger.logEvent(
+				'environment.startup.ready',
+				'All runtime dependencies satisfied at startup',
+				{},
+				startupTraceId
+			);
+		}
+
+		cleanupService.start();
+		cleanupStarted = true;
+	} catch (error) {
+		if (error instanceof EnvironmentSetupError) {
+			const failedDeps = Object.values(error.status.dependencies).filter((dep) => !dep.available);
+			logger.error(
+				'Critical dependency check failed during startup',
+				error,
+				{
+					dependencies: failedDeps.map((dep) => ({
+						name: dep.name,
+						installAttempted: dep.installAttempted,
+						message: dep.message,
+						suggestion: dep.suggestion
+					}))
+				},
+				startupTraceId
+			);
+
+			failedDeps.forEach((dep) => {
+				if (dep.suggestion) {
+					logger.warn(
+						'Environment dependency requires manual intervention',
+						'environment.setup.suggestion',
+						{
+							dependency: dep.name,
+							suggestion: dep.suggestion
+						},
+						startupTraceId
+					);
+				}
+			});
+
+			const guidance = failedDeps
+				.map((dep) => {
+					const detail = dep.suggestion ?? '请检查依赖的安装状态。';
+					return `- ${dep.name}: ${detail}`;
+				})
+				.join('\n');
+
+			process.stderr.write(
+				`环境依赖检查失败，服务已终止。请根据以下提示处理：\n${guidance}\n`
+			);
+		} else {
+			logger.error(
+				'Environment check failed during startup',
+				error as Error,
+				{
+					stage: 'startup'
+				},
+				startupTraceId
+			);
+			process.stderr.write('环境依赖检查时出现异常，服务已终止。\n');
+		}
+
+		if (cleanupStarted) {
+			cleanupService.stop();
+		}
+		process.exit(1);
+	}
+})();
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
 	logger.info('SIGTERM received, stopping cleanup scheduler', 'server.shutdown');
-	cleanupService.stop();
+	if (cleanupStarted) {
+		cleanupService.stop();
+	}
 	process.exit(0);
 });
 
 process.on('SIGINT', () => {
 	logger.info('SIGINT received, stopping cleanup scheduler', 'server.shutdown');
-	cleanupService.stop();
+	if (cleanupStarted) {
+		cleanupService.stop();
+	}
 	process.exit(0);
 });
 

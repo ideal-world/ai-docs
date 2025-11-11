@@ -30,5 +30,8 @@ server:
 
 # External Services
 libreoffice:
-  conversion_timeout: 60 # 60 seconds
+  conversion_timeout: 180 # 180 seconds (3 minutes) - increased for complex documents
   concurrent_conversions: 3
+
+markitdown:
+  path: /home/gudaoxuri/workspaces/idealworld/ai-docs/.venv/markitdown/bin/markitdown

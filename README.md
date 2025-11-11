@@ -257,4 +257,65 @@
 - Markdown：纯文本，保留结构。
 - 图片：将当前结果视图渲染导出（单页/多页）。
 
+## 18. 环境依赖与安装
+
+本项目依赖以下外部服务与工具，首次运行时会自动检测并尝试安装：
+
+### 18.1 LibreOffice
+- **用途**：Office 文档（docx/xlsx/pptx）转 PDF、Word 回写
+- **自动安装**：启动时检测 `libreoffice` 命令，未安装则调用 `scripts/install_libreoffice.sh` 自动安装（需 sudo 权限）
+- **手动安装**：
+  ```bash
+  # Debian/Ubuntu
+  sudo apt-get install libreoffice
+  
+  # Fedora/RHEL
+  sudo dnf install libreoffice
+  
+  # macOS
+  brew install --cask libreoffice
+  ```
+- **配置路径**（按优先级）：
+  1. 环境变量 `LIBREOFFICE_PATH`
+  2. `config/system.yaml` 中的 `libreoffice.path`
+  3. 默认值 `/usr/bin/libreoffice`
+
+### 18.2 MarkItDown
+- **用途**：PDF/图片转 Markdown（OCR 预处理）
+- **自动安装**：启动时检测 `markitdown` 命令，未安装则调用 `scripts/install_markitdown.sh` 创建虚拟环境并安装
+- **前置依赖**：需要 Python 3.8+ 和 `python3-venv`（Debian/Ubuntu 系统需手动安装：`sudo apt install python3-venv`）
+- **手动安装**：
+  ```bash
+  # 执行安装脚本（推荐）
+  bash scripts/install_markitdown.sh
+  
+  # 或直接使用 pip（全局安装）
+  pip install markitdown[all]
+  ```
+- **配置路径**（按优先级）：
+  1. 环境变量 `MARKITDOWN_BIN`
+  2. `config/system.yaml` 中的 `markitdown.path`
+  3. 自动计算的虚拟环境路径 `.venv/markitdown/bin/markitdown`
+  
+  安装脚本会输出虚拟环境路径，建议在 `config/system.yaml` 中配置：
+  ```yaml
+  markitdown:
+    path: /path/to/.venv/markitdown/bin/markitdown
+  ```
+
+### 18.3 启动检查流程
+1. 服务启动时自动检测 LibreOffice 和 MarkItDown
+2. 缺失时尝试自动安装（LibreOffice 需 sudo 权限，MarkItDown 需 python3-venv）
+3. 安装失败时输出详细错误提示和手动安装命令，并中止启动
+4. 确保环境满足后继续启动并进入正常服务流程
+
+### 18.4 故障排除
+- **LibreOffice 安装失败**：确认具有 sudo 权限，或手动执行 `sudo bash scripts/install_libreoffice.sh`
+- **MarkItDown 安装失败**：
+  - 检查 Python 版本（需 3.8+）：`python3 --version`
+  - 安装 venv 模块：`sudo apt install python3-venv`（Debian/Ubuntu）
+  - 手动运行安装脚本：`bash scripts/install_markitdown.sh`
+  - 记录脚本输出的二进制路径并配置到 `config/system.yaml`
+- **权限不足**：确保脚本具有执行权限：`chmod +x scripts/install_*.sh`
+
 

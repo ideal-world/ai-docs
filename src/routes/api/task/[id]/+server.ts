@@ -51,11 +51,17 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 				{
 					task: {
 						id: task.id,
+						sessionId: task.sessionId,
+						fileId: task.fileId,
 						type: task.type,
 						status: task.status,
+						stage: task.stage,
 						progress: task.progress,
 						createdAt: task.createdAt.toISOString(),
+						startedAt: task.startedAt?.toISOString(),
 						completedAt: task.completedAt?.toISOString(),
+						eta: task.eta?.toISOString(),
+						result: task.result,
 						error: task.error
 					}
 				},

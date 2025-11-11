@@ -6,10 +6,19 @@
  * Full test coverage with console mocking will be added in future iterations.
  */
 
-import { describe, it, expect } from 'vitest';
-import { logger } from '$lib/services/logger.service';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { Logger, logger } from '$lib/services/logger.service';
+import { systemConfig } from '$lib/utils/config';
+import type { LogFormat } from '$lib/types/config';
 
 describe('Logger Service', () => {
+	let originalFormat: LogFormat;
+
+	beforeEach(() => {
+		originalFormat = systemConfig.server.logFormat || 'logfmt';
+		logger.setLogFormat(originalFormat);
+	});
+
 	it('should have logEvent method', () => {
 		expect(typeof logger.logEvent).toBe('function');
 	});
@@ -31,6 +40,23 @@ describe('Logger Service', () => {
 			logger.info('Test message');
 			logger.warn('Test warning');
 			logger.error('Test error', new Error('Test error'));
+		}).not.toThrow();
+	});
+
+	it('supports logfmt output format', () => {
+		const localLogger = new Logger('info', 'logfmt');
+		expect(() => {
+			localLogger.info('Format test', 'event.sample', { foo: 'bar baz' }, 'trace-123');
+			localLogger.error('Format error', new Error('boom'), { reason: 'test' }, 'trace-456');
+		}).not.toThrow();
+	});
+
+	it('can switch log format dynamically', () => {
+		expect(() => {
+			logger.setLogFormat('logfmt');
+			logger.info('Logfmt message');
+			logger.setLogFormat('json');
+			logger.info('JSON message');
 		}).not.toThrow();
 	});
 });

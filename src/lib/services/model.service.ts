@@ -14,8 +14,12 @@ import type {
 import { loadModelsConfig, getApiKey } from '$lib/utils/config';
 import { logger } from './logger.service';
 import { v4 as uuidv4 } from 'uuid';
+import { readFile } from 'fs/promises';
+import { join, resolve } from 'path';
 
-class ModelService {
+const MOCK_RESPONSES_DIR = join(process.cwd(), 'config', 'mocks');
+
+export class ModelService {
 	private config: ModelsConfig;
 	private queues: Map<string, QueuedRequest[]> = new Map();
 	private activeRequests: Map<string, number> = new Map();
@@ -177,41 +181,49 @@ class ModelService {
 		);
 
 		try {
-			// T088: Create abort controller for timeout
-			const abortController = new AbortController();
-			const timeoutId = setTimeout(() => {
-				abortController.abort();
-			}, model.timeout);
+			let result: ModelResponse;
 
-			// T087: Format request for OpenAI-compatible API
-			const apiKey = getApiKey(model.provider);
-			if (!apiKey && model.provider === 'openai') {
-				throw new Error('Missing API key for OpenAI provider');
+			if (model.mock?.enabled) {
+				result = await this.handleMockResponse(model, category, request, traceId);
+			} else {
+				// T088: Create abort controller for timeout
+				const abortController = new AbortController();
+				const timeoutId = setTimeout(() => {
+					abortController.abort();
+				}, model.timeout);
+
+				try {
+					// T087: Format request for OpenAI-compatible API
+					const apiKey = getApiKey(model.provider);
+					if (!apiKey && model.provider === 'openai') {
+						throw new Error('Missing API key for OpenAI provider');
+					}
+
+					const headers: Record<string, string> = {
+						'Content-Type': 'application/json'
+					};
+
+					if (apiKey) {
+						headers['Authorization'] = `Bearer ${apiKey}`;
+					}
+
+					const response = await fetch(model.endpoint, {
+						method: 'POST',
+						headers,
+						body: JSON.stringify(request),
+						signal: abortController.signal
+					});
+
+					if (!response.ok) {
+						const errorText = await response.text();
+						throw new Error(`Model API error: ${response.status} - ${errorText}`);
+					}
+
+					result = (await response.json()) as ModelResponse;
+				} finally {
+					clearTimeout(timeoutId);
+				}
 			}
-
-			const headers: Record<string, string> = {
-				'Content-Type': 'application/json'
-			};
-
-			if (apiKey) {
-				headers['Authorization'] = `Bearer ${apiKey}`;
-			}
-
-			const response = await fetch(model.endpoint, {
-				method: 'POST',
-				headers,
-				body: JSON.stringify(request),
-				signal: abortController.signal
-			});
-
-			clearTimeout(timeoutId);
-
-			if (!response.ok) {
-				const errorText = await response.text();
-				throw new Error(`Model API error: ${response.status} - ${errorText}`);
-			}
-
-			const result = (await response.json()) as ModelResponse;
 
 			logger.info(
 				'Model request completed',
@@ -219,7 +231,8 @@ class ModelService {
 				{
 					modelId: model.id,
 					category,
-					tokensUsed: result.usage?.total_tokens || 0
+					tokensUsed: result.usage?.total_tokens || 0,
+					mock: Boolean(model.mock?.enabled)
 				},
 				traceId
 			);
@@ -247,6 +260,158 @@ class ModelService {
 			// Process next queued request
 			this.processQueue(model.id);
 		}
+	}
+
+	/**
+	 * Generate mock response when configured
+	 */
+	private async handleMockResponse(
+		model: ModelConfig,
+		category: ModelCategory,
+		_request: ModelRequest,
+		traceId?: string
+	): Promise<ModelResponse> {
+		logger.info(
+			'Mock response enabled, bypassing external call',
+			'model.mock.start',
+			{ modelId: model.id, category },
+			traceId
+		);
+
+		const mock = model.mock;
+		if (!mock) {
+			throw new Error('MOCK_CONFIGURATION_MISSING');
+		}
+
+		if (mock.delay && mock.delay > 0) {
+			await new Promise((resolve) => setTimeout(resolve, mock.delay));
+		}
+
+		const payload = await this.resolveMockPayload(mock, model, category, traceId);
+		const message = mock.response?.message;
+		const response = this.normalizeMockResponse(payload, message, model);
+
+		logger.info(
+			'Mock response generated',
+			'model.mock.complete',
+			{
+				modelId: model.id,
+				category,
+				delay: mock.delay || 0
+			},
+			traceId
+		);
+
+		return response;
+	}
+
+	private async resolveMockPayload(
+		mock: NonNullable<ModelConfig['mock']>,
+		model: ModelConfig,
+		category: ModelCategory,
+		traceId?: string
+	): Promise<Partial<ModelResponse> | undefined> {
+		if (mock.response?.payload) {
+			return mock.response.payload;
+		}
+
+		if (mock.responsePath) {
+			return this.loadMockPayloadFromFile(mock.responsePath, model, category, traceId);
+		}
+
+		return undefined;
+	}
+
+	private async loadMockPayloadFromFile(
+		responsePath: string,
+		model: ModelConfig,
+		category: ModelCategory,
+		traceId?: string
+	): Promise<Partial<ModelResponse>> {
+		const resolvedPath = resolve(MOCK_RESPONSES_DIR, responsePath);
+
+		if (!resolvedPath.startsWith(MOCK_RESPONSES_DIR)) {
+			const error = new Error('MOCK_RESPONSE_PATH_INVALID');
+			logger.error(
+				'Mock response path is outside of the allowed directory',
+				error,
+				{ modelId: model.id, category, responsePath },
+				traceId
+			);
+			throw error;
+		}
+
+		try {
+			const fileContent = await readFile(resolvedPath, 'utf-8');
+			const parsed = JSON.parse(fileContent) as unknown;
+
+			if (typeof parsed !== 'object' || parsed === null) {
+				throw new Error('MOCK_RESPONSE_FILE_INVALID');
+			}
+
+			return parsed as Partial<ModelResponse>;
+		} catch (error) {
+			logger.error(
+				'Failed to load mock response file',
+				error as Error,
+				{
+					modelId: model.id,
+					category,
+					responsePath: resolvedPath
+				},
+				traceId
+			);
+			throw new Error('MOCK_RESPONSE_FILE_ERROR');
+		}
+	}
+
+	private normalizeMockResponse(
+		payload: Partial<ModelResponse> | undefined,
+		message: string | undefined,
+		model: ModelConfig
+	): ModelResponse {
+		const baseMessage = message || `Mock response from ${model.name}`;
+		const createdAt = Math.floor(Date.now() / 1000);
+
+		const choices = (payload?.choices || []).map((choice, index) => {
+			const content = choice?.message?.content || baseMessage;
+			return {
+				index: choice?.index ?? index,
+				message: {
+					role: choice?.message?.role || 'assistant',
+					content
+				},
+				finish_reason: choice?.finish_reason || 'stop'
+			};
+		});
+
+		if (choices.length === 0) {
+			choices.push({
+				index: 0,
+				message: {
+					role: 'assistant',
+					content: baseMessage
+				},
+				finish_reason: 'stop'
+			});
+		}
+
+		const promptTokens = payload?.usage?.prompt_tokens ?? 0;
+		const completionTokens = payload?.usage?.completion_tokens ?? 0;
+		const totalTokens = payload?.usage?.total_tokens ?? (promptTokens + completionTokens);
+
+		return {
+			id: payload?.id || `mock-${uuidv4()}`,
+			object: payload?.object || 'chat.completion',
+			created: payload?.created || createdAt,
+			model: payload?.model || model.model,
+			choices,
+			usage: {
+				prompt_tokens: promptTokens,
+				completion_tokens: completionTokens,
+				total_tokens: totalTokens
+			}
+		};
 	}
 
 	/**

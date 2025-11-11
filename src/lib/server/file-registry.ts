@@ -37,6 +37,31 @@ class FileRegistry {
 	}
 
 	/**
+	 * Update file metadata
+	 */
+	update(fileId: string, updates: Partial<FileModel>): FileModel | undefined {
+		const existing = this.files.get(fileId);
+		if (!existing) return undefined;
+
+		const mergedMetadata = updates.metadata
+			? {
+				...(existing.metadata ?? {}),
+				...updates.metadata
+			}
+			: existing.metadata;
+
+		const updated: FileModel & { sessionId: string } = {
+			...existing,
+			...updates,
+			sessionId: existing.sessionId,
+			metadata: mergedMetadata
+		};
+
+		this.files.set(fileId, updated);
+		return { ...updated };
+	}
+
+	/**
 	 * Delete a file
 	 */
 	delete(fileId: string): boolean {

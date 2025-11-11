@@ -25,7 +25,8 @@
  * ```
  */
 
-import type { LogLevel } from '$lib/types/config';
+import type { LogLevel, LogFormat } from '$lib/types/config';
+import { systemConfig } from '$lib/utils/config';
 
 export interface LogEntry {
 	timestamp: string; // ISO 8601
@@ -44,17 +45,38 @@ export interface LogEntry {
 	};
 }
 
-class Logger {
-	private logLevel: LogLevel;
+const LOG_LEVELS: LogLevel[] = ['debug', 'info', 'warn', 'error'];
 
-	constructor(level: LogLevel = 'info') {
-		this.logLevel = level;
+const needsQuoting = (value: string): boolean => /[\s=]/.test(value) || value.includes('"');
+
+const sanitizeValue = (value: unknown): string => {
+	if (value === undefined || value === null) {
+		return '';
+	}
+
+	if (typeof value === 'string') {
+		return value;
+	}
+
+	if (value instanceof Error) {
+		return value.message;
+	}
+
+	return typeof value === 'object' ? JSON.stringify(value) : String(value);
+};
+
+export class Logger {
+	private logLevel: LogLevel;
+	private logFormat: LogFormat;
+
+ constructor(level: LogLevel = 'info', format: LogFormat = 'logfmt') {
+	this.logLevel = level;
+	this.logFormat = format;
 	}
 
 	private shouldLog(level: LogLevel): boolean {
-		const levels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
-		const currentLevelIndex = levels.indexOf(this.logLevel);
-		const messageLevelIndex = levels.indexOf(level);
+		const currentLevelIndex = LOG_LEVELS.indexOf(this.logLevel);
+		const messageLevelIndex = LOG_LEVELS.indexOf(level);
 		return messageLevelIndex >= currentLevelIndex;
 	}
 
@@ -76,8 +98,7 @@ class Logger {
 	private writeLog(entry: LogEntry): void {
 		if (!this.shouldLog(entry.level)) return;
 
-		// In production, write to file. In development, use console
-		const logString = JSON.stringify(entry);
+		const logString = this.serialize(entry);
 
 		if (entry.level === 'error') {
 			console.error(logString);
@@ -86,6 +107,51 @@ class Logger {
 		} else {
 			console.log(logString);
 		}
+	}
+
+	private serialize(entry: LogEntry): string {
+		if (this.logFormat === 'logfmt') {
+			return this.formatLogFmt(entry);
+		}
+
+		return JSON.stringify(entry);
+	}
+
+	private formatLogFmt(entry: LogEntry): string {
+		const parts: string[] = [];
+		const push = (key: string, raw: unknown) => {
+			const value = sanitizeValue(raw);
+			if (!value) return;
+			const escaped = value.replace(/"/g, '\\"');
+			if (needsQuoting(escaped)) {
+				parts.push(`${key}="${escaped}"`);
+			} else {
+				parts.push(`${key}=${escaped}`);
+			}
+		};
+
+		push('ts', entry.timestamp);
+		push('level', entry.level);
+		push('event', entry.eventType);
+		push('trace', entry.traceId);
+		push('session', entry.sessionId);
+		push('file', entry.fileId);
+		push('msg_key', entry.messageKey);
+		push('msg', entry.message);
+
+		if (entry.context) {
+			for (const [key, value] of Object.entries(entry.context)) {
+				push(`ctx.${key}`, value);
+			}
+		}
+
+		if (entry.error) {
+			push('err', entry.error.message);
+			push('err_code', entry.error.code);
+			push('err_stack', entry.error.stack);
+		}
+
+		return parts.join(' ');
 	}
 
 	debug(message: string, context?: Record<string, unknown>, traceId?: string): void {
@@ -163,9 +229,29 @@ class Logger {
 	setLogLevel(level: LogLevel): void {
 		this.logLevel = level;
 	}
+
+	setLogFormat(format: LogFormat): void {
+		this.logFormat = format;
+	}
 }
 
 // Singleton instance
-export const logger = new Logger(
-	(process.env.LOG_LEVEL as LogLevel) || (import.meta.env.DEV ? 'debug' : 'info')
-);
+const resolveLogLevel = (): LogLevel => {
+	const envLevel = process.env.LOG_LEVEL as LogLevel | undefined;
+	if (envLevel && LOG_LEVELS.includes(envLevel)) {
+		return envLevel;
+	}
+
+	return systemConfig.server.logLevel || (import.meta.env.DEV ? 'debug' : 'info');
+};
+
+const resolveLogFormat = (): LogFormat => {
+	const envFormat = process.env.LOG_FORMAT?.toLowerCase() as LogFormat | undefined;
+	if (envFormat === 'logfmt' || envFormat === 'json') {
+		return envFormat;
+	}
+
+	return systemConfig.server.logFormat || 'logfmt';
+};
+
+export const logger = new Logger(resolveLogLevel(), resolveLogFormat());

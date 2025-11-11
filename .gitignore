@@ -22,6 +22,9 @@ Thumbs.db
 # Data directory
 data/
 
+# Python virtual environments
+.venv/
+
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*

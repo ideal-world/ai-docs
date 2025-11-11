@@ -373,6 +373,7 @@ components:
             - VALIDATION_ERROR
             - UNSUPPORTED_FILE
             - CONVERSION_FAILED
+            - LIBREOFFICE_NOT_INSTALLED
             - FILE_NOT_FOUND
             - UPLOAD_FAILED
             - TASK_NOT_FOUND

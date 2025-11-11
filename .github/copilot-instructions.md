@@ -132,6 +132,7 @@ export const storageService = new StorageService();
 - 未使用 i18n key 的中文或英文裸字符串
 - 拼接/绕过服务层直接访问外部模型接口
 - 将临时/转换文件写到非规范目录
+- 直接修改 src/lib/paraglide 下的内容，如果发现i18n相关报错，则先调用 `pnpm dev`
 
 ## 9. 后续演进建议（可选）
 - 引入持久任务队列（Redis）提升可靠性

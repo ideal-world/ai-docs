@@ -2,7 +2,8 @@ import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
-import { join } from 'path';
+import { join, normalize, relative } from 'path';
+import { logger } from '$lib/services/logger.service';
 
 // GET /api/files/sessionId/category/filename
 export const GET: RequestHandler = async ({ params }) => {
@@ -17,10 +18,11 @@ export const GET: RequestHandler = async ({ params }) => {
 	
 	try {
 		// Construct file path
-		const filePath = join(process.cwd(), 'data', sessionId, category, filename);
-		
+		const baseDir = normalize(join(process.cwd(), 'data'));
+		const filePath = normalize(join(baseDir, sessionId, category, filename));
+
 		// Security: Ensure the path is within the data directory
-		if (!filePath.startsWith(join(process.cwd(), 'data'))) {
+		if (relative(baseDir, filePath).startsWith('..')) {
 			throw error(403, 'Access denied');
 		}
 		
@@ -40,6 +42,8 @@ export const GET: RequestHandler = async ({ params }) => {
 			contentType = 'image/png';
 		} else if (filename.endsWith('.jpg') || filename.endsWith('.jpeg')) {
 			contentType = 'image/jpeg';
+		} else if (filename.endsWith('.md')) {
+			contentType = 'text/markdown; charset=utf-8';
 		} else if (filename.endsWith('.doc') || filename.endsWith('.docx')) {
 			contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 		} else if (filename.endsWith('.xls') || filename.endsWith('.xlsx')) {
@@ -57,7 +61,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		if (err instanceof Response) {
 			throw err;
 		}
-		console.error('File serve error:', err);
+		logger.error('File serve error', err as Error, { filename: params.path });
 		throw error(500, 'Failed to serve file');
 	}
 };

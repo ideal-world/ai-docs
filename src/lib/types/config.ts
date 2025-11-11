@@ -17,6 +17,7 @@ export interface SystemConfig {
 	server: {
 		request_timeout: number; // in seconds
 		body_size_limit: number; // in bytes
+		log_format?: LogFormat;
 	};
 	conversion?: {
 		timeout: number; // in seconds
@@ -38,6 +39,7 @@ export interface ModelConfig {
 	timeout: number; // milliseconds
 	max_concurrency: number;
 	enabled: boolean;
+	mock?: ModelMockConfig;
 }
 
 export interface ModelSettings {
@@ -54,6 +56,18 @@ export interface ModelsConfig {
 	review: ModelConfig[];
 	extract: ModelConfig[];
 	settings: ModelSettings;
+}
+
+export interface MockResponseConfig {
+	message?: string;
+	payload?: Partial<ModelResponse>;
+}
+
+export interface ModelMockConfig {
+	enabled: boolean;
+	delay?: number;
+	response?: MockResponseConfig;
+	responsePath?: string;
 }
 
 export interface ModelRequest {
@@ -100,9 +114,11 @@ export interface QueuedRequest {
 export interface EnvironmentConfig {
 	port: number;
 	logLevel: LogLevel;
+	logFormat: LogFormat;
 	dataDir: string;
 	libreOfficePath?: string;
 	apiKeys?: Record<string, string>;
 }
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogFormat = 'json' | 'logfmt';

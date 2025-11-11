@@ -31,22 +31,74 @@ class TaskRegistry {
 		progress?: number,
 		errorDetails?: { code: string; message: string; stack?: string }
 	): boolean {
+		return this.update(taskId, {
+			status,
+			progress,
+			error: errorDetails
+		});
+	}
+
+	/**
+	 * Update task fields (status, progress, stage, eta, result, error)
+	 */
+	update(
+		taskId: string,
+		updates: Partial<
+			Pick<Task, 'status' | 'progress' | 'stage' | 'eta' | 'result' | 'error' | 'startedAt' | 'completedAt'>
+		>
+	): boolean {
 		const task = this.tasks.get(taskId);
 		if (!task) return false;
 
-		task.status = status;
-		if (progress !== undefined) task.progress = progress;
-		if (errorDetails) {
-			task.error = errorDetails;
+		if (updates.status) {
+			task.status = updates.status;
+			if (updates.status === 'running' && !task.startedAt) {
+				task.startedAt = new Date();
+			}
+			if (updates.status === 'succeeded' || updates.status === 'failed' || updates.status === 'cancelled') {
+				task.completedAt = updates.completedAt ?? new Date();
+			}
 		}
-		if (status === 'succeeded' || status === 'failed') {
-			task.completedAt = new Date();
+
+		if (updates.progress !== undefined) {
+			task.progress = updates.progress;
 		}
-		if (status === 'running' && !task.startedAt) {
-			task.startedAt = new Date();
+
+		if (updates.stage !== undefined) {
+			task.stage = updates.stage;
+		}
+
+		if (updates.eta !== undefined) {
+			task.eta = updates.eta;
+		}
+
+		if (updates.result !== undefined) {
+			task.result = updates.result;
+		}
+
+		if (updates.error !== undefined) {
+			task.error = updates.error;
 		}
 
 		return true;
+	}
+
+	cancel(taskId: string): boolean {
+		const task = this.tasks.get(taskId);
+		if (!task) return false;
+
+		if (task.status === 'succeeded' || task.status === 'failed' || task.status === 'cancelled') {
+			return true;
+		}
+
+		task.status = 'cancelled';
+		task.stage = 'pipeline.stage.cancelled';
+		task.completedAt = new Date();
+		return true;
+	}
+
+	isCancelled(taskId: string): boolean {
+		return this.tasks.get(taskId)?.status === 'cancelled';
 	}
 
 	/**

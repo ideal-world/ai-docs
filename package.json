@@ -48,6 +48,9 @@
 		"vitest": "^4.0.7"
 	},
 	"dependencies": {
+		"dompurify": "^3.3.0",
+		"marked": "^17.0.0",
+		"mermaid": "^10.9.0",
 		"pdfjs-dist": "^5.4.394",
 		"uuid": "^13.0.0",
 		"yaml": "^2.8.1"

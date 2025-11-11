@@ -12,15 +12,11 @@ ocr:
     timeout: 60000 # 60 seconds
     max_concurrency: 5
     enabled: true
-
-  - id: ocr-azure-vision
-    name: Azure Computer Vision OCR
-    provider: azure
-    model: azure-vision-ocr
-    endpoint: ${AZURE_VISION_ENDPOINT}
-    timeout: 30000 # 30 seconds
-    max_concurrency: 10
-    enabled: false # Disabled by default
+    mock:
+      enabled: true
+      delay: 0
+      response:
+        message: '这是 OCR 模型的模拟响应'
 
 # Translation Models - For document translation
 translate:
@@ -32,6 +28,11 @@ translate:
     timeout: 45000 # 45 seconds
     max_concurrency: 8
     enabled: true
+    mock:
+      enabled: false
+      delay: 0
+      response:
+        message: '这是翻译模型的模拟响应'
 
 # QA Models - For question answering
 qa:
@@ -43,6 +44,11 @@ qa:
     timeout: 30000 # 30 seconds
     max_concurrency: 10
     enabled: true
+    mock:
+      enabled: false
+      delay: 0
+      response:
+        message: '这是问答模型的模拟响应'
 
 # Review Models - For document review and analysis
 review:
@@ -54,6 +60,11 @@ review:
     timeout: 60000 # 60 seconds
     max_concurrency: 5
     enabled: true
+    mock:
+      enabled: false
+      delay: 0
+      response:
+        message: '这是审阅模型的模拟响应'
 
 # Extract Models - For information extraction
 extract:
@@ -65,6 +76,11 @@ extract:
     timeout: 45000 # 45 seconds
     max_concurrency: 8
     enabled: true
+    mock:
+      enabled: false
+      delay: 0
+      response:
+        message: '这是抽取模型的模拟响应'
 
 # Global Settings
 settings:

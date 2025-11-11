@@ -199,7 +199,7 @@
 </script>
 
 <div
-	class="group relative flex h-full min-h-0 overflow-hidden rounded-lg bg-base-200"
+	class="group relative flex h-full min-h-0 rounded-lg bg-base-200"
 	role="group"
 	aria-label={labels.canvas}
 	onmouseenter={handleMouseEnter}
@@ -207,7 +207,9 @@
 	onfocusin={handleFocusIn}
 	onfocusout={handleFocusOut}
 >
-	<div class={`${toolbarContainerBase} ${showToolbar ? toolbarContainerVisible : toolbarContainerHidden}`}>
+	<div
+		class={`${toolbarContainerBase} ${showToolbar ? toolbarContainerVisible : toolbarContainerHidden}`}
+	>
 		<div class={toolbarInnerClass}>
 			<div class="flex items-center gap-2">
 				<Button
@@ -218,7 +220,14 @@
 					class={toolbarButtonClass}
 					ariaLabel={labels.prevPage}
 				>
-					<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="h-4 w-4">
+					<svg
+						width="12"
+						height="12"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						class="h-4 w-4"
+					>
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -227,7 +236,9 @@
 						/>
 					</svg>
 				</Button>
-				<span class="rounded-full border border-base-content/15 bg-base-200/80 px-2 py-0.5 text-[0.7rem] font-semibold text-base-content/70">
+				<span
+					class="rounded-full border border-base-content/15 bg-base-200/80 px-2 py-0.5 text-[0.7rem] font-semibold text-base-content/70"
+				>
 					{pageNum} / {pageCount || 1}
 				</span>
 				<Button
@@ -238,8 +249,20 @@
 					class={toolbarButtonClass}
 					ariaLabel={labels.nextPage}
 				>
-					<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="h-4 w-4">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+					<svg
+						width="12"
+						height="12"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						class="h-4 w-4"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M9 5l7 7-7 7"
+						/>
 					</svg>
 				</Button>
 			</div>
@@ -252,11 +275,20 @@
 					class={toolbarButtonClass}
 					ariaLabel={labels.zoomOut}
 				>
-					<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="h-4 w-4">
+					<svg
+						width="12"
+						height="12"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						class="h-4 w-4"
+					>
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
 					</svg>
 				</Button>
-				<span class="min-w-[3.2rem] rounded-full border border-base-content/15 bg-base-200/80 px-2 py-0.5 text-[0.7rem] font-semibold text-base-content/70 text-center">
+				<span
+					class="min-w-[3.2rem] rounded-full border border-base-content/15 bg-base-200/80 px-2 py-0.5 text-[0.7rem] font-semibold text-base-content/70 text-center"
+				>
 					{Math.round(scale * 100)}%
 				</span>
 				<Button
@@ -267,7 +299,14 @@
 					class={toolbarButtonClass}
 					ariaLabel={labels.zoomIn}
 				>
-					<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="h-4 w-4">
+					<svg
+						width="12"
+						height="12"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						class="h-4 w-4"
+					>
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -283,7 +322,14 @@
 					class={toolbarButtonClass}
 					ariaLabel={labels.fitScreen}
 				>
-					<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="h-4 w-4">
+					<svg
+						width="12"
+						height="12"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						class="h-4 w-4"
+					>
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -296,7 +342,11 @@
 		</div>
 	</div>
 
-	<div class="flex flex-1 items-center justify-center overflow-auto bg-base-200/80 p-6">
-		<canvas bind:this={canvasRef} class="rounded-md bg-base-100 shadow-xl" aria-label={labels.canvas}></canvas>
+	<div class="flex flex-1 items-start justify-center overflow-auto bg-base-200/80 p-6">
+		<canvas
+			bind:this={canvasRef}
+			class="max-w-full rounded-md bg-base-100 shadow-xl"
+			aria-label={labels.canvas}
+		></canvas>
 	</div>
 </div>

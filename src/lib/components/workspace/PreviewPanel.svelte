@@ -7,6 +7,7 @@
 	import { currentLanguage } from '$lib/stores/language';
 	import { documentsStore, currentPreview } from '$lib/stores/documents';
 	import { modeStore } from '$lib/stores/mode';
+	import { activeTasks } from '$lib/stores/processing';
 	import { get } from 'svelte/store';
 	import * as m from '$lib/paraglide/messages';
 
@@ -25,6 +26,8 @@
 			emptyHint: m.preview_empty_hint(),
 			conversionTitle: m.preview_office_conversion_title(),
 			conversionBody: m.preview_office_conversion_body(),
+			conversionCancelledTitle: m.task_cancel_success(),
+			conversionCancelledBody: m.processing_modal_cancel_success(),
 			unknownTitle: m.preview_unknown_type_title(),
 			unknownBody: m.preview_unknown_type_body(),
 			uploadNew: m.preview_upload_new(),
@@ -32,6 +35,49 @@
 			uploadHide: m.preview_upload_hide(),
 			closeAttachment: m.attachments_view_close()
 		};
+	});
+
+	const officeTaskState = $derived.by(() => {
+		$activeTasks;
+		const currentFile = file;
+		if (!currentFile || currentFile.type !== 'office') {
+			return { status: 'idle' as const };
+		}
+
+		const tasksForFile = $activeTasks.filter((task) => task.fileId === currentFile.id);
+		if (!tasksForFile.length) {
+			return { status: 'idle' as const };
+		}
+
+		const score = (date?: Date | null) => (date ? date.getTime() : 0);
+		const latestTask = tasksForFile.reduce((latest, task) => {
+			if (!latest) return task;
+			const latestTime = Math.max(
+				score(latest.completedAt),
+				score(latest.startedAt),
+				score(latest.createdAt)
+			);
+			const taskTime = Math.max(
+				score(task.completedAt),
+				score(task.startedAt),
+				score(task.createdAt)
+			);
+			return taskTime >= latestTime ? task : latest;
+		}, tasksForFile[0]);
+
+		if (latestTask.status === 'pending' || latestTask.status === 'running') {
+			return { status: 'processing' as const };
+		}
+
+		if (latestTask.status === 'cancelled') {
+			return { status: 'cancelled' as const };
+		}
+
+		if (latestTask.status === 'failed') {
+			return { status: 'failed' as const };
+		}
+
+		return { status: 'completed' as const };
 	});
 
 	const tooltipClass =
@@ -69,20 +115,46 @@
 					variant={file ? 'secondary' : 'primary'}
 					size="xs"
 					on:click={() => (showUploadPanel = !showUploadPanel)}
-					ariaLabel={file ? (showUploadPanel ? labels.uploadHide : labels.uploadReplace) : labels.uploadNew}
+					ariaLabel={file
+						? showUploadPanel
+							? labels.uploadHide
+							: labels.uploadReplace
+						: labels.uploadNew}
 					class="rounded-full"
 				>
 					{#if !file}
-						<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+						<svg
+							class="h-4 w-4"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.8"
+						>
 							<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0-12l-4 4m4-4l4 4" />
-							<path stroke-linecap="round" stroke-linejoin="round" d="M6 14v2a2 2 0 002 2h8a2 2 0 002-2v-2" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M6 14v2a2 2 0 002 2h8a2 2 0 002-2v-2"
+							/>
 						</svg>
 					{:else if showUploadPanel}
-						<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+						<svg
+							class="h-4 w-4"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.8"
+						>
 							<path stroke-linecap="round" stroke-linejoin="round" d="M6 15l6-6 6 6" />
 						</svg>
 					{:else}
-						<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+						<svg
+							class="h-4 w-4"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.8"
+						>
 							<path stroke-linecap="round" stroke-linejoin="round" d="M4 12h16" />
 							<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12" />
 						</svg>
@@ -92,14 +164,29 @@
 					{file ? (showUploadPanel ? labels.uploadHide : labels.uploadReplace) : labels.uploadNew}
 				</span>
 			</div>
-			<span class="min-w-0 flex-1 truncate text-sm font-semibold text-base-content/80" title={file ? file.name : labels.emptyTitle}>
+			<span
+				class="min-w-0 flex-1 truncate text-sm font-semibold text-base-content/80"
+				title={file ? file.name : labels.emptyTitle}
+			>
 				{file ? file.name : labels.emptyTitle}
 			</span>
 		</div>
 		{#if $documentsStore.previewOverrideId}
 			<div class="group relative inline-flex">
-				<Button variant="ghost" size="xs" on:click={closeAttachmentPreview} ariaLabel={labels.closeAttachment} class="rounded-full">
-					<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+				<Button
+					variant="ghost"
+					size="xs"
+					on:click={closeAttachmentPreview}
+					ariaLabel={labels.closeAttachment}
+					class="rounded-full"
+				>
+					<svg
+						class="h-4 w-4"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.6"
+					>
 						<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
 					</svg>
 				</Button>
@@ -121,21 +208,87 @@
 			{:else if file.type === 'pdf'}
 				<PDFPreview fileUrl={file.path} fileName={file.name} />
 			{:else if file.type === 'office'}
-				<div class="flex h-full flex-col items-center justify-center gap-6 px-8 py-12 text-center text-success/80">
-					<svg class="h-14 w-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
-					<h3 class="m-0 text-lg font-semibold text-success/90">{labels.conversionTitle}</h3>
-					<p class="m-0 max-w-2xl text-base leading-relaxed text-success/70">{labels.conversionBody}</p>
-				</div>
+				{#if officeTaskState.status === 'processing'}
+					<div
+						class="flex h-full flex-col items-center justify-center gap-6 px-8 py-12 text-center text-success/80"
+					>
+						<svg
+							class="h-14 w-14"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							aria-hidden="true"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+							/>
+						</svg>
+						<h3 class="m-0 text-lg font-semibold text-success/90">{labels.conversionTitle}</h3>
+						<p class="m-0 max-w-2xl text-base leading-relaxed text-success/70">
+							{labels.conversionBody}
+						</p>
+					</div>
+				{:else if officeTaskState.status === 'cancelled'}
+					<div
+						class="flex h-full flex-col items-center justify-center gap-6 px-8 py-12 text-center text-warning/80"
+					>
+						<svg
+							class="h-14 w-14"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							aria-hidden="true"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M6 18L18 6M6 6l12 12"
+							/>
+						</svg>
+						<h3 class="m-0 text-lg font-semibold text-warning/90">
+							{labels.conversionCancelledTitle}
+						</h3>
+						<p class="m-0 max-w-2xl text-base leading-relaxed text-warning/70">
+							{labels.conversionCancelledBody}
+						</p>
+					</div>
+				{:else}
+					<div
+						class="flex h-full flex-col items-center justify-center gap-6 px-8 py-12 text-center text-warning/80"
+					>
+						<svg
+							class="h-14 w-14"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							aria-hidden="true"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M12 9v2m0 4h.01M12 5a7 7 0 100 14 7 7 0 000-14z"
+							/>
+						</svg>
+						<h3 class="m-0 text-lg font-semibold text-warning/90">{labels.unknownTitle}</h3>
+						<p class="m-0 max-w-2xl text-base text-warning/70">{labels.unknownBody}</p>
+					</div>
+				{/if}
 			{:else}
-				<div class="flex h-full flex-col items-center justify-center gap-6 px-8 py-12 text-center text-warning/80">
-					<svg class="h-14 w-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+				<div
+					class="flex h-full flex-col items-center justify-center gap-6 px-8 py-12 text-center text-warning/80"
+				>
+					<svg
+						class="h-14 w-14"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						aria-hidden="true"
+					>
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -148,8 +301,16 @@
 				</div>
 			{/if}
 		{:else if !showUploadPanel}
-			<div class="flex h-full flex-col items-center justify-center gap-4 px-6 py-10 text-center text-base-content/60">
-				<svg class="h-14 w-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+			<div
+				class="flex h-full flex-col items-center justify-center gap-4 px-6 py-10 text-center text-base-content/60"
+			>
+				<svg
+					class="h-14 w-14"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					aria-hidden="true"
+				>
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"

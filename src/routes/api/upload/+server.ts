@@ -10,12 +10,11 @@ import { generateTraceId } from '$lib/utils/trace';
 import { createSuccessResponse, createErrorResponse } from '$lib/utils/api';
 import { validateFileType, validateFileSize } from '$lib/utils/validation';
 import { storageService } from '$lib/services/storage.service';
-import { officeService } from '$lib/services/office.service';
+import { processService } from '$lib/services/process.service';
 import { cleanupService } from '$lib/services/cleanup.service';
 import { logger } from '$lib/services/logger.service';
 import { systemConfig } from '$lib/utils/config';
 import { fileRegistry } from '$lib/server/file-registry';
-import { taskRegistry } from '$lib/server/task-registry';
 import type { File as FileModel, Task } from '$lib/types/models';
 
 const MAX_FILE_SIZE = systemConfig.upload.maxFileSize;
@@ -172,60 +171,10 @@ export async function POST({ request }: RequestEvent) {
 
 						uploadedFiles.push(fileRecord);
 
-						// If Office file, trigger conversion
-						if (fileType === 'office' && officeService.isOfficeFormat(mimeType)) {
-							const taskId = generateTraceId();
-							const task: Task = {
-								id: taskId,
-								sessionId,
-								type: 'convert',
-								status: 'pending',
-								progress: 0,
-								createdAt: new Date()
-							};
 
-							// Register task
-							taskRegistry.register(task);
-							tasks.push(task);
-
-							logger.logEvent(
-								'conversion.queued',
-								'Office conversion queued',
-								{
-									sessionId,
-									fileId,
-									taskId,
-									filename
-								},
-								traceId
-							);
-
-							// Trigger conversion asynchronously (don't await)
-							officeService
-								.convertToPdf(sessionId, `${fileId}_${filename}`)
-								.then((pdfFilename) => {
-									logger.logEvent('conversion.complete', 'Office conversion completed', {
-										sessionId,
-										fileId,
-										taskId,
-										pdfFilename
-									});
-									// Update task status
-									taskRegistry.updateStatus(taskId, 'succeeded', 100);
-								})
-								.catch((error) => {
-									logger.error('Office conversion failed', error as Error, {
-										sessionId,
-										fileId,
-										taskId
-									});
-									// Update task status
-									taskRegistry.updateStatus(taskId, 'failed', 0, {
-										code: 'CONVERSION_FAILED',
-										message: error.message
-									});
-								});
-						}
+						// Trigger unified processing pipeline asynchronously
+						const task = processService.startProcessing(fileRecord, { traceId, role: 'main' });
+						tasks.push(task);
 
 						logger.logEvent(
 							'upload.complete',

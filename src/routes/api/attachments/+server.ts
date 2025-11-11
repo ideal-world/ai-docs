@@ -10,10 +10,11 @@ import { generateTraceId } from '$lib/utils/trace';
 import { createSuccessResponse, createErrorResponse } from '$lib/utils/api';
 import { validateFileType, validateFileSize } from '$lib/utils/validation';
 import { storageService } from '$lib/services/storage.service';
+import { processService } from '$lib/services/process.service';
 import { logger } from '$lib/services/logger.service';
 import { systemConfig } from '$lib/utils/config';
 import { fileRegistry } from '$lib/server/file-registry';
-import type { File as FileModel } from '$lib/types/models';
+import type { File as FileModel, Task } from '$lib/types/models';
 
 const MAX_FILE_SIZE = systemConfig.upload.maxFileSize;
 
@@ -43,6 +44,7 @@ export async function POST({ request }: RequestEvent) {
 		logger.logEvent('upload.start', 'Starting attachment upload', { sessionId }, traceId);
 
 		const uploadedFiles: FileModel[] = [];
+		const tasks: Task[] = [];
 
 		// Convert Web ReadableStream to Node.js stream
 		// The Web ReadableStream needs to be cast via 'unknown' first to satisfy TypeScript
@@ -136,6 +138,12 @@ export async function POST({ request }: RequestEvent) {
 
 					uploadedFiles.push(fileRecord);
 
+					const task = processService.startProcessing(fileRecord, {
+						traceId,
+						role: 'attachment'
+					});
+					tasks.push(task);
+
 					logger.logEvent(
 						'upload.attachment.complete',
 						'Attachment uploaded successfully',
@@ -190,6 +198,7 @@ export async function POST({ request }: RequestEvent) {
 		return json(
 			createSuccessResponse('upload.success', traceId, {
 				files: uploadedFiles,
+				tasks,
 				sessionId
 			}),
 			{ status: 201 }

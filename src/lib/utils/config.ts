@@ -1,4 +1,11 @@
-import type { SystemConfig, ModelsConfig, ModelConfig } from '$lib/types/config';
+import type {
+	SystemConfig,
+	ModelsConfig,
+	ModelConfig,
+	ModelMockConfig,
+	MockResponseConfig,
+	LogFormat
+} from '$lib/types/config';
 import { env } from '$env/dynamic/private';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -21,17 +28,75 @@ interface ExtendedSystemConfig extends SystemConfig {
 	server: SystemConfig['server'] & {
 		port: number;
 		logLevel: 'debug' | 'info' | 'warn' | 'error';
+		logFormat: LogFormat;
 	};
 	libreOffice?: {
+		path: string;
+		timeout: number;
+	};
+	markitdown?: {
 		path: string;
 		timeout: number;
 	};
 }
 
 /**
- * Load system configuration from environment variables
+ * Load system.yaml configuration if exists
+ */
+function loadSystemYaml(): Partial<ExtendedSystemConfig> {
+	try {
+		const configPath = join(process.cwd(), 'config/system.yaml');
+		const configContent = readFileSync(configPath, 'utf-8');
+		const rawConfig = parseYAML(configContent) as Record<string, any>;
+
+		// Map YAML keys to TypeScript interface (handle snake_case to camelCase)
+		const mapped: Partial<ExtendedSystemConfig> = {};
+
+		if (rawConfig.libreoffice) {
+			mapped.libreOffice = {
+				path: rawConfig.libreoffice.path || '/usr/bin/libreoffice',
+				timeout: (rawConfig.libreoffice.conversion_timeout || 180) * 1000 // Convert seconds to milliseconds
+			};
+		}
+
+		if (rawConfig.markitdown) {
+			mapped.markitdown = {
+				path: rawConfig.markitdown.path || 'markitdown',
+				timeout: rawConfig.markitdown.timeout || 120000
+			};
+		}
+
+		return mapped;
+	} catch (error) {
+		// Config file doesn't exist or is invalid, return empty object
+		return {};
+	}
+}
+
+/**
+ * Load system configuration from environment variables and YAML file
  */
 export function loadSystemConfig(): ExtendedSystemConfig {
+	const yamlConfig = loadSystemYaml();
+
+	const resolveLogFormat = (input?: string | null): LogFormat => {
+		if (!input) return 'logfmt';
+		const normalized = input.toLowerCase();
+		return normalized === 'json' ? 'json' : 'logfmt';
+	};
+
+	const markitdownBinary =
+		env.MARKITDOWN_BIN ||
+		process.env.MARKITDOWN_BIN ||
+		yamlConfig.markitdown?.path ||
+		join(
+			process.cwd(),
+			'.venv',
+			'markitdown',
+			process.platform === 'win32' ? 'Scripts' : 'bin',
+			process.platform === 'win32' ? 'markitdown.exe' : 'markitdown'
+		);
+
 	return {
 		upload: {
 			max_file_size: 100 * 1024 * 1024, // 100MB
@@ -80,11 +145,16 @@ export function loadSystemConfig(): ExtendedSystemConfig {
 			request_timeout: 300, // 5 minutes
 			body_size_limit: 100 * 1024 * 1024, // 100MB
 			port: parseInt(env.PORT || '5173'),
-			logLevel: (env.LOG_LEVEL as 'debug' | 'info' | 'warn' | 'error') || 'info'
+			logLevel: (env.LOG_LEVEL as 'debug' | 'info' | 'warn' | 'error') || 'info',
+			logFormat: resolveLogFormat(env.LOG_FORMAT || process.env.LOG_FORMAT)
 		},
 		libreOffice: {
-			path: env.LIBREOFFICE_PATH || '/usr/bin/libreoffice',
-			timeout: 60 // 60 seconds
+			path: env.LIBREOFFICE_PATH || yamlConfig.libreOffice?.path || '/usr/bin/libreoffice',
+			timeout: yamlConfig.libreOffice?.timeout || 60 // 60 seconds
+		},
+		markitdown: {
+			path: markitdownBinary,
+			timeout: Number.parseInt(env.MARKITDOWN_TIMEOUT || '120000', 10)
 		}
 	};
 }
@@ -176,6 +246,48 @@ function validateModelConfig(model: ModelConfig, category: string): void {
 
 	if (typeof model.max_concurrency !== 'number' || model.max_concurrency <= 0) {
 		throw new Error(`Invalid max_concurrency for model ${model.id}`);
+	}
+
+	if (model.mock) {
+		validateMockConfig(model.mock, category, model.id);
+	}
+}
+
+function validateMockConfig(mock: ModelMockConfig, category: string, modelId: string): void {
+	if (typeof mock.enabled !== 'boolean') {
+		throw new Error(`Invalid mock.enabled for model ${modelId} in category ${category}`);
+	}
+
+	if (mock.delay !== undefined && (typeof mock.delay !== 'number' || mock.delay < 0)) {
+		throw new Error(`Invalid mock.delay for model ${modelId} in category ${category}`);
+	}
+
+	if (mock.response !== undefined) {
+		validateMockResponse(mock.response, category, modelId);
+	}
+
+	if (mock.responsePath !== undefined && typeof mock.responsePath !== 'string') {
+		throw new Error(`Invalid mock.responsePath for model ${modelId} in category ${category}`);
+	}
+}
+
+function validateMockResponse(
+	mockResponse: MockResponseConfig,
+	category: string,
+	modelId: string
+): void {
+	if (typeof mockResponse !== 'object' || mockResponse === null) {
+		throw new Error(`Invalid mock.response for model ${modelId} in category ${category}`);
+	}
+
+	if (mockResponse.message !== undefined && typeof mockResponse.message !== 'string') {
+		throw new Error(`Invalid mock.response.message for model ${modelId} in category ${category}`);
+	}
+
+	if (mockResponse.payload !== undefined) {
+		if (typeof mockResponse.payload !== 'object' || mockResponse.payload === null) {
+			throw new Error(`Invalid mock.response.payload for model ${modelId} in category ${category}`);
+		}
 	}
 }
 

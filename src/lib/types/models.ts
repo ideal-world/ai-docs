@@ -4,12 +4,20 @@
  */
 
 // File Types
-export type FileType = 'image' | 'pdf' | 'office';
+export type FileType = 'image' | 'pdf' | 'office' | 'text';
 export type Category = 'uploads' | 'converted' | 'results' | 'attachments';
 
 // Task Types
-export type TaskType = 'convert' | 'ocr' | 'translate' | 'qa' | 'review' | 'extract' | 'writeback';
-export type TaskStatus = 'pending' | 'running' | 'succeeded' | 'failed';
+export type TaskType =
+	| 'process'
+	| 'convert'
+	| 'ocr'
+	| 'translate'
+	| 'qa'
+	| 'review'
+	| 'extract'
+	| 'writeback';
+export type TaskStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 
 // Session Model
 export interface Session {
@@ -63,7 +71,7 @@ export interface PDFMetadata {
 
 // Office Metadata
 export interface OfficeMetadata {
-	format: 'docx' | 'xlsx' | 'pptx';
+	format: 'docx' | 'xlsx' | 'pptx' | 'doc' | 'xls' | 'ppt';
 	convertedPdfId?: string;
 }
 
@@ -71,6 +79,7 @@ export interface OfficeMetadata {
 export interface Task {
 	id: string;
 	sessionId: string;
+	fileId?: string;
 	type: TaskType;
 	status: TaskStatus;
 	progress: number; // 0-100
