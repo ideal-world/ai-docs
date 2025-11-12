@@ -4,7 +4,6 @@ import type { File as FileModel } from '$lib/types/models';
 interface DocumentsState {
 	files: FileModel[];
 	currentPreviewId: string | null;
-	uploadProgress: Map<string, number>; // fileId -> progress (0-100)
 	/** 附件临时覆盖预览的文件 id，存在时优先显示该文件 */
 	previewOverrideId?: string | null;
 }
@@ -27,7 +26,6 @@ function createDocumentsStore() {
 	const initialState: DocumentsState = {
 		files: [],
 		currentPreviewId: null,
-		uploadProgress: new Map(),
 		previewOverrideId: null
 	};
 
@@ -79,18 +77,6 @@ function createDocumentsStore() {
 				...state,
 				previewOverrideId: null
 			})),
-		setUploadProgress: (fileId: string, progress: number) =>
-			update((state) => {
-				const newProgress = new Map(state.uploadProgress);
-				newProgress.set(fileId, progress);
-				return { ...state, uploadProgress: newProgress };
-			}),
-		removeUploadProgress: (fileId: string) =>
-			update((state) => {
-				const newProgress = new Map(state.uploadProgress);
-				newProgress.delete(fileId);
-				return { ...state, uploadProgress: newProgress };
-			}),
 		clearAll: () => set(initialState),
 		reset: () => set(initialState)
 	};

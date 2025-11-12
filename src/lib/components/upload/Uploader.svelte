@@ -5,7 +5,6 @@
 	import { modeStore } from '$lib/stores/mode';
 	import { registerProcessingTasks, type TaskLike } from '$lib/utils/processing-client';
 	import Button from '$lib/components/ui/Button.svelte';
-	import Progress from '$lib/components/ui/Progress.svelte';
 	import * as m from '$lib/paraglide/messages';
 	import { get } from 'svelte/store';
 
@@ -19,9 +18,8 @@
 
 	let isDragging = $state(false);
 	let isUploading = $state(false);
-	let uploadProgress = $state(0);
 	let uploadError = $state<string | null>(null);
-	let currentRequest: XMLHttpRequest | null = null;
+	let currentRequest = $state<XMLHttpRequest | null>(null);
 	let fileInputRef: HTMLInputElement;
 
 	const copy = $derived.by(() => {
@@ -40,9 +38,7 @@
 
 	function resetUploadState() {
 		isUploading = false;
-		uploadProgress = 0;
 		uploadError = null;
-		documentsStore.removeUploadProgress('__main__');
 		currentRequest = null;
 		if (fileInputRef) fileInputRef.value = '';
 	}
@@ -97,15 +93,6 @@
 
 		uploadError = null;
 		isUploading = true;
-		uploadProgress = 0;
-		documentsStore.setUploadProgress('__main__', 0);
-
-		xhr.upload.onprogress = (event) => {
-			if (!event.lengthComputable) return;
-			const percent = Math.min(100, Math.round((event.loaded / event.total) * 100));
-			uploadProgress = percent;
-			documentsStore.setUploadProgress('__main__', percent);
-		};
 
 		xhr.onerror = () => {
 			uploadError = copy.uploadFailed(m.error());
@@ -136,9 +123,6 @@
 				filesResponse.forEach((fileObj: Record<string, unknown>) => {
 					const fileModel = fileObj as unknown as import('$lib/types/models').File;
 					documentsStore.addFile(fileModel);
-					// Upload complete for this file
-					documentsStore.setUploadProgress(fileModel.id, 100);
-					documentsStore.removeUploadProgress('__main__');
 					modeAfterUpload(fileModel.id, fileModel.type);
 				});
 
@@ -213,10 +197,12 @@
 	/>
 
 	{#if isUploading}
-		<div class="mx-auto flex max-w-xs flex-col items-center gap-2">
-			<Progress value={uploadProgress} color="primary" />
-			<p class="text-sm text-base-content/80">{copy.uploading} {uploadProgress}%</p>
-			<Button variant="ghost" size="sm" on:click={abortUpload}>{copy.cancel}</Button>
+		<div class="mx-auto flex max-w-xs flex-col items-center gap-3 text-base-content/75">
+			<span class="loading loading-spinner loading-md text-primary"></span>
+			<p class="text-sm font-medium">{copy.uploading}</p>
+			<Button variant="ghost" size="sm" on:click={abortUpload} disabled={!currentRequest}>
+				{copy.cancel}
+			</Button>
 		</div>
 	{:else}
 		<div class="flex flex-col items-center">
