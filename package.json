@@ -49,6 +49,7 @@
 	},
 	"dependencies": {
 		"dompurify": "^3.3.0",
+		"highlight.js": "^11.10.0",
 		"marked": "^17.0.0",
 		"mermaid": "^10.9.0",
 		"pdfjs-dist": "^5.4.394",
