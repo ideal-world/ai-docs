@@ -2,6 +2,8 @@
 	import { documentsStore } from '$lib/stores/documents';
 	import { attachmentIds, modeStore } from '$lib/stores/mode';
 	import { sessionId } from '$lib/stores/session';
+	import { currentLanguage } from '$lib/stores/language';
+	import { processingStore } from '$lib/stores/processing';
 	import { get } from 'svelte/store';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Progress from '$lib/components/ui/Progress.svelte';
@@ -9,25 +11,67 @@
 	import type { File as StoredFile } from '$lib/types/models';
 	import { registerProcessingTasks, type TaskLike } from '$lib/utils/processing-client';
 
-	let uploading = $state(false);
+	type PendingStatus = 'uploading' | 'failed';
+
+	interface PendingUpload {
+		tempId: string;
+		name: string;
+		size: number;
+		mimeType: string;
+		progress: number;
+		status: PendingStatus;
+		error?: string | null;
+		request: XMLHttpRequest | null;
+	}
+
+	type AttachmentStage = 'pending' | 'processing' | 'failed' | 'cancelled' | 'ready';
+
+	interface AttachmentDisplay {
+		kind: 'file';
+		file: StoredFile;
+		status: AttachmentStage;
+		progress: number | null;
+		stageLabel: string | null;
+		error?: string | null;
+		previewTargetId: string;
+		isActive: boolean;
+		convertedPdfId?: string;
+	}
+
+	interface PendingDisplay {
+		kind: 'pending';
+		tempId: string;
+		name: string;
+		size: number;
+		progress: number;
+		status: PendingStatus;
+		error?: string | null;
+	}
+
+	type AttachmentListItem = AttachmentDisplay | PendingDisplay;
+
+	let pendingUploads = $state<PendingUpload[]>([]);
 	let deletingId = $state<string | null>(null);
 	let fileInput: HTMLInputElement;
 	let errorMsg = $state<string | null>(null);
-	let uploadProgress = $state(0);
-	let currentRequest = $state<XMLHttpRequest | null>(null);
 
-	const copy = $derived.by(() => ({
-		uploading: m.common_uploading(),
-		cancel: m.common_cancel(),
-		uploadFailed: (reason: string) => m.upload_failed({ reason })
-	}));
-
-	// Drag-and-drop入口已移除，仅保留按钮上传
+	const copy = $derived.by(() => {
+		$currentLanguage;
+		return {
+			statusUploading: m.common_uploading(),
+			statusProcessing: m.processing_status_running(),
+			statusPending: m.processing_status_pending(),
+			statusFailed: m.processing_status_failed(),
+			statusCancelled: m.processing_status_cancelled(),
+			failureTooltip: (reason: string) => reason,
+			remove: m.attachments_remove(),
+			uploadFailed: (reason: string) => m.upload_failed({ reason })
+		};
+	});
 
 	const tooltipClass =
 		'pointer-events-none absolute left-1/2 top-full z-30 mt-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-base-content/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-base-100 opacity-0 shadow-lg transition group-hover:opacity-100 group-focus-within:opacity-100';
 
-	// 过滤出附件：依据 modeStore.attachments 列表或 metadata.role
 	const attachments = $derived.by(() => {
 		const all = $documentsStore.files;
 		const ids = $attachmentIds;
@@ -36,103 +80,256 @@
 		);
 	});
 
+	const displayItems = $derived.by<AttachmentListItem[]>(() => {
+		$currentLanguage;
+		const docs = $documentsStore;
+		const proc = $processingStore;
+		const previewOverrideId = docs.previewOverrideId ?? null;
+		const filesMap = new Map(docs.files.map((f) => [f.id, f] as const));
+
+		const pendingItems: PendingDisplay[] = pendingUploads.map((item) => ({
+			kind: 'pending' as const,
+			tempId: item.tempId,
+			name: item.name,
+			size: item.size,
+			progress: item.progress,
+			status: item.status,
+			error: item.error ?? null
+		}));
+
+		const fileItems: AttachmentDisplay[] = attachments
+			.map((file) => {
+				const convertedPdfId =
+					typeof file.metadata === 'object' && file.metadata && 'convertedPdfId' in file.metadata
+						? (file.metadata as { convertedPdfId?: string }).convertedPdfId
+						: undefined;
+
+				const taskId = proc.fileTaskMap.get(file.id);
+				const task = taskId ? (proc.tasks.get(taskId) ?? null) : null;
+
+				let status: AttachmentStage = 'ready';
+				let progress: number | null = null;
+				let error: string | null = null;
+
+				if (task) {
+					switch (task.status) {
+						case 'pending':
+							status = 'pending';
+							progress = task.progress ?? 0;
+							break;
+						case 'running':
+							status = 'processing';
+							progress = task.progress ?? 0;
+							break;
+						case 'failed':
+							status = 'failed';
+							progress = task.progress ?? 0;
+							error = task.error?.message ?? null;
+							break;
+						case 'cancelled':
+							status = 'cancelled';
+							progress = task.progress ?? 0;
+							error = task.error?.message ?? null;
+							break;
+						default:
+							status = 'ready';
+							progress = null;
+					}
+				}
+
+				const stageLabel = resolveStage(task?.stage);
+				const hasConverted = convertedPdfId ? filesMap.has(convertedPdfId) : false;
+				const previewTargetId = hasConverted ? convertedPdfId! : file.id;
+				const isActive =
+					previewOverrideId === file.id ||
+					(previewOverrideId !== null && convertedPdfId && previewOverrideId === convertedPdfId);
+
+				const result: AttachmentDisplay = {
+					kind: 'file',
+					file,
+					status,
+					progress,
+					stageLabel,
+					error,
+					previewTargetId,
+					isActive: Boolean(isActive),
+					convertedPdfId
+				};
+				return result;
+			})
+			.sort((a, b) => {
+				const aTime =
+					a.file.createdAt instanceof Date
+						? a.file.createdAt.getTime()
+						: new Date(a.file.createdAt).getTime();
+				const bTime =
+					b.file.createdAt instanceof Date
+						? b.file.createdAt.getTime()
+						: new Date(b.file.createdAt).getTime();
+				return bTime - aTime;
+			});
+
+		return [...pendingItems, ...fileItems];
+	});
+
+	function resolveStage(stage?: string | null): string | null {
+		switch (stage) {
+			case 'pipeline.stage.pending':
+				return m.pipeline_stage_pending();
+			case 'pipeline.stage.office_to_pdf':
+				return m.pipeline_stage_office_to_pdf();
+			case 'pipeline.stage.pdf_to_markdown':
+				return m.pipeline_stage_pdf_to_markdown();
+			case 'pipeline.stage.ocr_to_markdown':
+				return m.pipeline_stage_ocr_to_markdown();
+			case 'pipeline.stage.completed':
+				return m.pipeline_stage_completed();
+			case 'pipeline.stage.cancelled':
+				return m.pipeline_stage_cancelled();
+			default:
+				return null;
+		}
+	}
+
+	function generateTempId(): string {
+		if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+			return crypto.randomUUID();
+		}
+		return Math.random().toString(36).slice(2);
+	}
+
+	function updatePending(tempId: string, updater: (item: PendingUpload) => PendingUpload) {
+		pendingUploads = pendingUploads.map((item) => (item.tempId === tempId ? updater(item) : item));
+	}
+
+	function removePending(tempId: string) {
+		pendingUploads = pendingUploads.filter((item) => item.tempId !== tempId);
+	}
+
+	function clampProgress(value: number | null | undefined): number {
+		if (value == null || Number.isNaN(value)) {
+			return 0;
+		}
+		return Math.max(0, Math.min(100, Math.round(value)));
+	}
+
 	function triggerSelect() {
-		if (uploading) return;
 		fileInput?.click();
 	}
 
-	async function handleSelect(e: Event) {
-		const input = e.target as HTMLInputElement;
+	async function handleSelect(event: Event) {
+		const input = event.target as HTMLInputElement;
 		const files = Array.from(input.files || []);
 		if (!files.length) return;
-		await uploadAttachments(files);
+		uploadAttachments(files);
 		input.value = '';
 	}
 
-	async function uploadAttachments(files: globalThis.File[]) {
-		if (uploading || files.length === 0) return;
+	function uploadAttachments(files: globalThis.File[]) {
+		if (!files.length) return;
+		files.forEach((file) => startSingleUpload(file));
+	}
 
-		uploading = true;
-		uploadProgress = 0;
-		errorMsg = null;
+	function startSingleUpload(file: globalThis.File) {
+		const tempId = generateTempId();
+		const pending: PendingUpload = {
+			tempId,
+			name: file.name,
+			size: file.size,
+			mimeType: file.type,
+			progress: 0,
+			status: 'uploading',
+			error: null,
+			request: null
+		};
 
-		const form = new FormData();
-		files.forEach((file, index) => form.append(`file-${index}`, file));
+		pendingUploads = [...pendingUploads, pending];
+
+		const formData = new FormData();
+		formData.append('file-0', file);
+
 		const sid = get(sessionId);
-
 		const xhr = new XMLHttpRequest();
-		currentRequest = xhr;
+
+		updatePending(tempId, (item) => ({ ...item, request: xhr }));
 
 		xhr.upload.onprogress = (event) => {
 			if (!event.lengthComputable) return;
-			uploadProgress = Math.min(100, Math.round((event.loaded / event.total) * 100));
+			const progress = Math.min(100, Math.round((event.loaded / event.total) * 100));
+			updatePending(tempId, (item) => ({ ...item, progress }));
 		};
 
 		xhr.onerror = () => {
-			errorMsg = copy.uploadFailed(m.error());
-			resetUploadState();
+			markPendingFailed(tempId, m.error());
 		};
 
 		xhr.onabort = () => {
-			errorMsg = null;
-			resetUploadState();
+			removePending(tempId);
 		};
 
 		xhr.onreadystatechange = () => {
 			if (xhr.readyState !== XMLHttpRequest.DONE) return;
 
 			try {
-				const payload = JSON.parse(xhr.responseText ?? '{}');
+				const responseText = xhr.responseText ?? '{}';
+				const payload = JSON.parse(responseText);
 
 				if (xhr.status < 200 || xhr.status >= 300 || !payload.success) {
-					const reason = payload.message || `${xhr.status}`;
-					errorMsg = copy.uploadFailed(reason);
-					resetUploadState();
+					const reason = payload?.message || `${xhr.status}`;
+					markPendingFailed(tempId, reason);
 					return;
 				}
+
+				removePending(tempId);
 
 				const filesResponse = payload.data?.files ?? [];
 				const tasksResponse = payload.data?.tasks ?? [];
 
 				filesResponse.forEach((fileObj: Record<string, unknown>) => {
-					const file = fileObj as unknown as import('$lib/types/models').File;
-					documentsStore.addFile(file);
-					modeStore.addAttachment(file.id);
+					const uploadedFile = fileObj as unknown as StoredFile;
+					documentsStore.addFile(uploadedFile);
+					modeStore.addAttachment(uploadedFile.id);
 				});
 
 				if (Array.isArray(tasksResponse) && tasksResponse.length > 0) {
 					registerProcessingTasks(tasksResponse as TaskLike[]);
 				}
 			} catch (error) {
-				errorMsg = copy.uploadFailed((error as Error).message ?? m.error());
-			} finally {
-				resetUploadState();
+				markPendingFailed(tempId, (error as Error).message ?? m.error());
 			}
 		};
 
 		xhr.open('POST', '/api/attachments', true);
 		xhr.setRequestHeader('x-session-id', sid);
-		xhr.send(form);
+		xhr.send(formData);
 	}
 
-	function resetUploadState() {
-		uploading = false;
-		uploadProgress = 0;
-		currentRequest = null;
+	function markPendingFailed(tempId: string, reason: string) {
+		const message = copy.uploadFailed(reason);
+		updatePending(tempId, (item) => ({
+			...item,
+			status: 'failed',
+			progress: 0,
+			error: message,
+			request: null
+		}));
 	}
 
-	function cancelUpload() {
-		currentRequest?.abort();
-	}
+	function cancelPendingUpload(tempId: string) {
+		const pending = pendingUploads.find((item) => item.tempId === tempId);
+		if (!pending) return;
 
-	function viewAttachment(id: string) {
-		documentsStore.pushTempPreview(id);
+		if (pending.status === 'uploading') {
+			pending.request?.abort();
+		} else {
+			removePending(tempId);
+		}
 	}
 
 	function formatSize(bytes: number) {
 		if (!Number.isFinite(bytes)) return '';
-		const units = ['B', 'KB', 'MB', 'GB'];
 		let value = bytes;
+		const units = ['B', 'KB', 'MB', 'GB'];
 		let unitIndex = 0;
 		while (value >= 1024 && unitIndex < units.length - 1) {
 			value /= 1024;
@@ -143,10 +340,15 @@
 		return `${formatted} ${units[unitIndex]}`;
 	}
 
+	function previewAttachment(item: AttachmentDisplay) {
+		documentsStore.pushTempPreview(item.previewTargetId);
+	}
+
 	async function deleteAttachment(file: StoredFile) {
 		if (deletingId) return;
 		deletingId = file.id;
 		errorMsg = null;
+
 		try {
 			const sid = get(sessionId);
 			const resp = await fetch(`/api/attachments/${file.id}`, {
@@ -158,12 +360,28 @@
 				errorMsg = payload?.message || m.attachments_delete_failed();
 				return;
 			}
+
 			modeStore.removeAttachment(file.id);
-			documentsStore.removeFile(file.id);
+
 			const docs = $documentsStore;
-			if (docs.previewOverrideId === file.id) {
+			const convertedPdfId =
+				typeof file.metadata === 'object' && file.metadata && 'convertedPdfId' in file.metadata
+					? (file.metadata as { convertedPdfId?: string }).convertedPdfId
+					: undefined;
+
+			if (
+				docs.previewOverrideId === file.id ||
+				(convertedPdfId && docs.previewOverrideId === convertedPdfId)
+			) {
 				documentsStore.popTempPreview();
 			}
+
+			if (convertedPdfId) {
+				documentsStore.removeFile(convertedPdfId);
+			}
+
+			documentsStore.removeFile(file.id);
+
 			if (docs.currentPreviewId === file.id) {
 				documentsStore.setCurrentPreview(null);
 				const currentModeState = get(modeStore);
@@ -171,7 +389,13 @@
 					modeStore.setMain(null);
 				}
 			}
-		} catch (err) {
+
+			const processingState = $processingStore;
+			const mappedTaskId = processingState.fileTaskMap.get(file.id);
+			if (mappedTaskId) {
+				processingStore.removeTask(mappedTaskId);
+			}
+		} catch (error) {
 			errorMsg = m.attachments_delete_failed();
 		} finally {
 			deletingId = null;
@@ -188,8 +412,7 @@
 			<Button
 				variant="secondary"
 				size="xs"
-				on:click={triggerSelect}
-				disabled={uploading}
+				onclick={triggerSelect}
 				ariaLabel={m.attachments_add()}
 				class="rounded-full"
 			>
@@ -215,22 +438,11 @@
 		class="hidden"
 		onchange={handleSelect}
 	/>
-	{#if uploading}
-		<div class="px-3 pt-2">
-			<Progress value={uploadProgress} color="primary" />
-			<div class="mt-1 flex items-center justify-between text-xs text-base-content/60">
-				<span>{copy.uploading} {uploadProgress}%</span>
-				<Button variant="ghost" size="xs" on:click={cancelUpload} disabled={!currentRequest}>
-					{copy.cancel}
-				</Button>
-			</div>
-		</div>
-	{/if}
 	{#if errorMsg}
 		<p class="px-3 pt-2 text-xs text-error">{errorMsg}</p>
 	{/if}
 	<div class="flex-1 min-h-0 space-y-2 overflow-auto px-3 py-3">
-		{#if attachments.length === 0}
+		{#if displayItems.length === 0}
 			<p
 				class="rounded-md border border-dashed border-base-content/15 px-3 py-6 text-center text-xs text-base-content/60"
 			>
@@ -238,63 +450,146 @@
 			</p>
 		{:else}
 			<ul class="flex flex-col gap-2">
-				{#each attachments as file (file.id)}
-					<li
-						class={`group flex items-center gap-3 rounded-lg border px-3 py-2 shadow-sm ring-0 transition hover:border-primary/40 hover:bg-primary/5 ${
-							$documentsStore.previewOverrideId === file.id
-								? 'border-primary/40 bg-primary/10 text-primary'
-								: 'border-base-content/10 bg-base-100/90 text-base-content/80'
-						}`}
-					>
-						<button
-							type="button"
-							onclick={() => viewAttachment(file.id)}
-							class={`flex flex-1 flex-col items-start text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
-								$documentsStore.previewOverrideId === file.id
-									? 'text-primary'
-									: 'text-base-content/80'
+				{#each displayItems as item (item.kind === 'pending' ? item.tempId : item.file.id)}
+					{#if item.kind === 'pending'}
+						<li
+							class="flex items-center gap-3 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-3 py-2"
+						>
+							<div class="flex flex-1 flex-col gap-2">
+								<div class="flex items-center justify-between gap-2">
+									<div class="min-w-0">
+										<p class="truncate text-sm font-medium text-base-content/90" title={item.name}>
+											{item.name}
+										</p>
+										<p class="text-xs text-base-content/60">{formatSize(item.size)}</p>
+									</div>
+									<span class="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
+										{item.status === 'uploading'
+											? `${copy.statusUploading} ${clampProgress(item.progress)}%`
+											: copy.statusFailed}
+									</span>
+								</div>
+								<Progress
+									value={clampProgress(item.progress)}
+									color={item.status === 'failed' ? 'error' : 'primary'}
+								/>
+								{#if item.status === 'failed' && item.error}
+									<p class="text-xs text-error">{item.error}</p>
+								{/if}
+							</div>
+							<Button variant="ghost" size="xs" onclick={() => cancelPendingUpload(item.tempId)}>
+								{item.status === 'uploading' ? m.common_cancel() : m.common_close()}
+							</Button>
+						</li>
+					{:else}
+						<li
+							class={`group flex flex-col gap-2 rounded-lg border px-3 py-2 shadow-sm ring-0 transition ${
+								item.isActive
+									? 'border-primary/50 bg-primary/10 text-primary'
+									: 'border-base-content/10 bg-base-100/95 text-base-content/80'
 							}`}
 						>
-							<span
-								class={`line-clamp-1 font-medium ${
-									$documentsStore.previewOverrideId === file.id
-										? 'text-primary'
-										: 'text-base-content/90'
-								}`}
-								title={file.name}
-							>
-								{file.name}
-							</span>
-							<span
-								class={`mt-0.5 text-xs ${
-									$documentsStore.previewOverrideId === file.id
-										? 'text-primary/80'
-										: 'text-base-content/60'
-								}`}
-							>
-								{file.type.toUpperCase()} · {formatSize(file.size)}
-							</span>
-						</button>
-						<div class="flex items-center gap-1">
-							<Button
-								variant="ghost"
-								size="sm"
-								on:click={() => viewAttachment(file.id)}
-								disabled={$documentsStore.previewOverrideId === file.id}
-							>
-								{m.preview()}
-							</Button>
-							<Button
-								variant="ghost"
-								size="sm"
-								class="text-error hover:text-error"
-								on:click={() => deleteAttachment(file)}
-								disabled={deletingId === file.id}
-							>
-								{m.attachments_remove()}
-							</Button>
-						</div>
-					</li>
+							<div class="flex items-start justify-between gap-3">
+								<button
+									type="button"
+									onclick={() => previewAttachment(item)}
+									disabled={item.status !== 'ready'}
+									class={`flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+										item.isActive ? 'text-primary' : 'text-base-content/90'
+									}`}
+								>
+									<span class="line-clamp-1 text-sm font-medium" title={item.file.name}>
+										{item.file.name}
+									</span>
+									<span
+										class={`mt-0.5 text-xs ${
+											item.isActive ? 'text-primary/80' : 'text-base-content/60'
+										}`}
+									>
+										{item.file.type.toUpperCase()} · {formatSize(item.file.size)}
+									</span>
+									{#if item.stageLabel}
+										<span
+											class="mt-1 inline-flex text-[11px] uppercase tracking-[0.2em] text-base-content/50"
+										>
+											{item.stageLabel}
+										</span>
+									{/if}
+								</button>
+								<div class="flex items-center gap-1">
+									{#if (item.status === 'failed' || item.status === 'cancelled') && item.error}
+										<span
+											class="group/status relative inline-flex text-error"
+											role="img"
+											aria-label={item.error}
+										>
+											<svg
+												class="h-4 w-4"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="1.8"
+											>
+												<circle
+													cx="12"
+													cy="12"
+													r="10"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+												/>
+												<path d="M12 8v5" stroke-linecap="round" stroke-linejoin="round" />
+												<path d="M12 16h.01" stroke-linecap="round" stroke-linejoin="round" />
+											</svg>
+											<span class={tooltipClass}>{copy.failureTooltip(item.error)}</span>
+										</span>
+									{/if}
+									<Button
+										variant="ghost"
+										size="sm"
+										onclick={() => previewAttachment(item)}
+										disabled={item.status !== 'ready' || item.isActive}
+									>
+										{m.preview()}
+									</Button>
+									<Button
+										variant="ghost"
+										size="sm"
+										class="text-error hover:text-error"
+										onclick={() => deleteAttachment(item.file)}
+										disabled={deletingId === item.file.id}
+									>
+										{copy.remove}
+									</Button>
+								</div>
+							</div>
+							{#if item.progress !== null && item.status !== 'ready'}
+								<div>
+									<Progress
+										value={clampProgress(item.progress)}
+										color={item.status === 'failed' ? 'error' : 'primary'}
+									/>
+									<div
+										class="mt-1 flex items-center justify-between text-[11px] text-base-content/60"
+									>
+										<span>
+											{#if item.status === 'pending'}
+												{copy.statusPending}
+											{:else if item.status === 'processing'}
+												{copy.statusProcessing}
+											{:else if item.status === 'failed'}
+												{copy.statusFailed}
+											{:else if item.status === 'cancelled'}
+												{copy.statusCancelled}
+											{/if}
+										</span>
+										<span>{clampProgress(item.progress)}%</span>
+									</div>
+								</div>
+							{:else if item.status === 'failed' && item.error}
+								<p class="text-xs text-error">{item.error}</p>
+							{/if}
+						</li>
+					{/if}
 				{/each}
 			</ul>
 		{/if}

@@ -71,88 +71,92 @@
 	}
 </script>
 
-
-	<Modal bind:open={visible} title={copy.title} onClose={handleClose} size="lg">
-		{#snippet children()}
-			<section class="flex flex-col gap-5">
-				<div class="rounded-2xl border border-base-content/10 bg-base-200/70 p-5 shadow-sm shadow-base-content/5 backdrop-blur-sm">
-					<header class="flex flex-col gap-1.5">
-						<h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-base-content/60">
-							{copy.language}
-						</h3>
-						<p class="text-sm text-base-content/70">
-							{copy.languageDescription}
-						</p>
-					</header>
-					<div class="mt-4 grid gap-3 sm:grid-cols-2">
-						<button
-							type="button"
-							class={`flex items-center justify-center rounded-xl border border-base-content/12 bg-base-100/80 px-4 py-3 text-sm font-medium text-base-content/80 transition-all duration-200 hover:border-primary/55 hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${$currentLanguage === 'zh-cn' ? 'border-primary bg-primary/15 text-primary ring-1 ring-primary/40' : ''}`}
-							onclick={() => switchLanguage('zh-cn')}
-							aria-pressed={$currentLanguage === 'zh-cn'}
-						>
-							{copy.chinese}
-						</button>
-						<button
-							type="button"
-							class={`flex items-center justify-center rounded-xl border border-base-content/12 bg-base-100/80 px-4 py-3 text-sm font-medium text-base-content/80 transition-all duration-200 hover:border-primary/55 hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${$currentLanguage === 'en-us' ? 'border-primary bg-primary/15 text-primary ring-1 ring-primary/40' : ''}`}
-							onclick={() => switchLanguage('en-us')}
-							aria-pressed={$currentLanguage === 'en-us'}
-						>
-							{copy.english}
-						</button>
-					</div>
+<Modal bind:open={visible} title={copy.title} onClose={handleClose} size="lg">
+	{#snippet children()}
+		<section class="flex flex-col gap-5">
+			<div
+				class="rounded-2xl border border-base-content/10 bg-base-200/70 p-5 shadow-sm shadow-base-content/5 backdrop-blur-sm"
+			>
+				<header class="flex flex-col gap-1.5">
+					<h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-base-content/60">
+						{copy.language}
+					</h3>
+					<p class="text-sm text-base-content/70">
+						{copy.languageDescription}
+					</p>
+				</header>
+				<div class="mt-4 grid gap-3 sm:grid-cols-2">
+					<button
+						type="button"
+						class={`flex items-center justify-center rounded-xl border border-base-content/12 bg-base-100/80 px-4 py-3 text-sm font-medium text-base-content/80 transition-all duration-200 hover:border-primary/55 hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${$currentLanguage === 'zh-cn' ? 'border-primary bg-primary/15 text-primary ring-1 ring-primary/40' : ''}`}
+						onclick={() => switchLanguage('zh-cn')}
+						aria-pressed={$currentLanguage === 'zh-cn'}
+					>
+						{copy.chinese}
+					</button>
+					<button
+						type="button"
+						class={`flex items-center justify-center rounded-xl border border-base-content/12 bg-base-100/80 px-4 py-3 text-sm font-medium text-base-content/80 transition-all duration-200 hover:border-primary/55 hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${$currentLanguage === 'en-us' ? 'border-primary bg-primary/15 text-primary ring-1 ring-primary/40' : ''}`}
+						onclick={() => switchLanguage('en-us')}
+						aria-pressed={$currentLanguage === 'en-us'}
+					>
+						{copy.english}
+					</button>
 				</div>
+			</div>
 
-				<div class="rounded-2xl border border-base-content/10 bg-base-200/70 p-5 shadow-sm shadow-base-content/5 backdrop-blur-sm">
-					<header class="flex flex-col gap-1.5">
-						<h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-base-content/60">
-							{copy.theme}
-						</h3>
-						<p class="text-sm text-base-content/70">
-							{copy.themeDescription}
-						</p>
-					</header>
-					<div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-						{#each THEMES as theme}
-							<button
-								type="button"
-								class={`group flex h-full flex-col gap-3 rounded-xl border border-base-content/12 bg-base-100/80 p-4 text-left transition-all duration-200 hover:border-primary/60 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${selectedTheme === theme ? 'border-primary bg-primary/10 ring-1 ring-primary/40' : ''}`}
-								onclick={() => handleThemeSelect(theme)}
-								aria-pressed={selectedTheme === theme}
+			<div
+				class="rounded-2xl border border-base-content/10 bg-base-200/70 p-5 shadow-sm shadow-base-content/5 backdrop-blur-sm"
+			>
+				<header class="flex flex-col gap-1.5">
+					<h3 class="text-xs font-semibold uppercase tracking-[0.2em] text-base-content/60">
+						{copy.theme}
+					</h3>
+					<p class="text-sm text-base-content/70">
+						{copy.themeDescription}
+					</p>
+				</header>
+				<div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+					{#each THEMES as theme}
+						<button
+							type="button"
+							class={`group flex h-full flex-col gap-3 rounded-xl border border-base-content/12 bg-base-100/80 p-4 text-left transition-all duration-200 hover:border-primary/60 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${selectedTheme === theme ? 'border-primary bg-primary/10 ring-1 ring-primary/40' : ''}`}
+							onclick={() => handleThemeSelect(theme)}
+							aria-pressed={selectedTheme === theme}
+						>
+							<div class="flex items-center justify-between gap-2">
+								<span class="text-sm font-semibold text-base-content">
+									{themeLabels[theme]}
+								</span>
+								{#if selectedTheme === theme}
+									<span
+										class="rounded-full bg-primary/20 px-2 py-0.5 text-[11px] font-medium text-primary"
+									>
+										{copy.activeThemeBadge}
+									</span>
+								{/if}
+							</div>
+							<div
+								class="flex h-12 w-full items-center justify-between gap-3 rounded-lg border border-base-content/10 bg-base-200/70 px-3 transition-colors duration-200 group-hover:border-primary/50"
+								data-theme={theme}
+								aria-hidden="true"
 							>
-								<div class="flex items-center justify-between gap-2">
-									<span class="text-sm font-semibold text-base-content">
-										{themeLabels[theme]}
-									</span>
-									{#if selectedTheme === theme}
-										<span class="rounded-full bg-primary/20 px-2 py-0.5 text-[11px] font-medium text-primary">
-											{copy.activeThemeBadge}
-										</span>
-									{/if}
-								</div>
-								<div
-									class="flex h-12 w-full items-center justify-between gap-3 rounded-lg border border-base-content/10 bg-base-200/70 px-3 transition-colors duration-200 group-hover:border-primary/50"
-									data-theme={theme}
-									aria-hidden="true"
-								>
-									<span class="text-base font-semibold text-base-content">Aa</span>
-									<span class="flex flex-1 items-center justify-end gap-1.5">
-										<span class="h-2 w-8 rounded-full bg-primary/60"></span>
-										<span class="h-2 w-6 rounded-full bg-base-content/40"></span>
-									</span>
-								</div>
-							</button>
-						{/each}
-					</div>
+								<span class="text-base font-semibold text-base-content">Aa</span>
+								<span class="flex flex-1 items-center justify-end gap-1.5">
+									<span class="h-2 w-8 rounded-full bg-primary/60"></span>
+									<span class="h-2 w-6 rounded-full bg-base-content/40"></span>
+								</span>
+							</div>
+						</button>
+					{/each}
 				</div>
-			</section>
-		{/snippet}
+			</div>
+		</section>
+	{/snippet}
 
-		{#snippet actions()}
-			<Button variant="primary" on:click={handleClose}>
-				{copy.close}
-			</Button>
-		{/snippet}
-	</Modal>
-
+	{#snippet actions()}
+		<Button variant="primary" on:click={handleClose}>
+			{copy.close}
+		</Button>
+	{/snippet}
+</Modal>

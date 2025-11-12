@@ -158,5 +158,11 @@
 	"theme_soft": "Soft",
 	"theme_spotify": "Spotify",
 	"theme_valorant": "VALORANT",
-	"theme_vscode": "VS Code"
+	"theme_vscode": "VS Code",
+	"attachments_status_uploading": "Uploading… {progress}%",
+	"attachments_status_processing": "Processing… {progress}%",
+	"attachments_status_pending": "Waiting",
+	"attachments_status_failed": "Failed",
+	"attachments_status_cancelled": "Cancelled",
+	"attachments_failure_tooltip": "Details: {reason}"
 }

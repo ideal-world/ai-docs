@@ -158,5 +158,11 @@
 	"theme_soft": "柔和",
 	"theme_spotify": "Spotify",
 	"theme_valorant": "VALORANT",
-	"theme_vscode": "VS Code"
+	"theme_vscode": "VS Code",
+	"attachments_status_uploading": "上传中… {progress}%",
+	"attachments_status_processing": "处理中… {progress}%",
+	"attachments_status_pending": "等待中",
+	"attachments_status_failed": "已失败",
+	"attachments_status_cancelled": "已取消",
+	"attachments_failure_tooltip": "详情：{reason}"
 }

@@ -10,6 +10,7 @@
 		class?: string;
 		ariaLabel?: string;
 		title?: string;
+		onclick?: (event: MouseEvent) => void;
 		children?: import('svelte').Snippet;
 	}
 
@@ -24,6 +25,7 @@
 		class: extraClass = '',
 		ariaLabel = undefined,
 		title: titleAttr = undefined,
+		onclick,
 		children
 	}: Props = $props();
 
@@ -42,6 +44,7 @@
 	} satisfies Record<NonNullable<Props['size']>, string>;
 
 	function handleClick(event: MouseEvent) {
+		onclick?.(event);
 		dispatch('click', event);
 	}
 </script>

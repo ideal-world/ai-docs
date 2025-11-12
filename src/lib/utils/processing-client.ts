@@ -55,7 +55,9 @@ function handleTaskUpdate(rawTask: TaskLike) {
 		}
 	}
 
-	if (payload.markdownFile) {
+	const isAttachment = payload.sourceFile?.metadata?.role === 'attachment';
+
+	if (payload.markdownFile && !isAttachment) {
 		documentsStore.addFile(payload.markdownFile);
 	}
 }
