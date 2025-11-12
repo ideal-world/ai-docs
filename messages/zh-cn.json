@@ -128,5 +128,14 @@
 	"processing_modal_progress_label": "进度",
 	"processing_modal_cancel": "取消处理",
 	"processing_modal_cancel_success": "已取消当前处理。",
-	"processing_modal_cancel_error": "取消失败：{reason}"
+	"processing_modal_cancel_error": "取消失败：{reason}",
+	"preview_loading": "PDF 正在加载...",
+	"preview_sidebar_outline": "目录",
+	"preview_sidebar_thumbnails": "页面缩略图",
+	"preview_sidebar_open": "展开目录与缩略图",
+	"preview_outline_untitled": "未命名章节",
+	"preview_thumbnail_page": "跳转到第 {page} 页",
+	"preview_sidebar_page_label": "第 {page} 页",
+	"preview_page_canvas": "第 {page} 页的 PDF 画布",
+	"preview_zoom_open": "显示缩放控件"
 }

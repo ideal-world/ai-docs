@@ -128,5 +128,14 @@
 	"processing_modal_progress_label": "Progress",
 	"processing_modal_cancel": "Cancel processing",
 	"processing_modal_cancel_success": "Processing has been cancelled.",
-	"processing_modal_cancel_error": "Unable to cancel: {reason}"
+	"processing_modal_cancel_error": "Unable to cancel: {reason}",
+	"preview_loading": "Loading PDF…",
+	"preview_sidebar_outline": "Outline",
+	"preview_sidebar_thumbnails": "Thumbnails",
+	"preview_sidebar_open": "Show outline and thumbnails",
+	"preview_outline_untitled": "Untitled section",
+	"preview_thumbnail_page": "Go to page {page}",
+	"preview_sidebar_page_label": "Page {page}",
+	"preview_page_canvas": "Canvas for page {page}",
+	"preview_zoom_open": "Show zoom controls"
 }
